@@ -5,9 +5,35 @@ let colorArray = [];
 let jewelries = [];
 let rocks = [];
 
+let font;
+let startGame;
+let howTo;
+
+let gameStart = false;
+let gameOver = false;
+
+let score = 0;
+let remainingTime = 60;
+
+let gameOverText;
+let playAgain;
+
+function preload() {
+  font = loadFont('data/font0.otf');
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(255);
+
+  startGame = "Press ENTER to start the game!";
+  howTo = "Use arrow keys to move and space bar to jump";
+
+  gameOverText = "GAME OVER";
+  playAgain = "To play again press ENTER!";
+
+  setInterval(time, 1000);
+
   character = new Human();
   colorArray = [color(0), color(255), color(255, 0, 0), color(0, 0, 255)];
   // slower --> faster
@@ -22,36 +48,91 @@ function draw() {
   fill(139, 69, 19);
   rect(0, height - 100, width, 100);
 
-  // jewelries
-  if (random(1) < 0.02) {
-    jewelries.push(new Jewelry());
+  if (!gameStart) {
+    textAlign(CENTER);
+    // START GAME
+    textFont(font, 32);
+    text(startGame, width / 2, (height - 200) / 2);
+
+    // use arrow keys...
+    textFont(font, 24);
+    text(howTo, width / 2, (height - 200) / 2 + 50);
   }
 
-  for (let each of jewelries) {
-    each.update();
-    each.display();
+  else if (gameOver) {
+    textAlign(CENTER);
+    textFont(font, 48);
+    text(gameOverText, width / 2, (height - 200) / 2);
+
+    textFont(font, 32);
+    text("Score: " + score, width / 2, (height - 200) / 2 + 50);
+
+    textFont(font, 24);
+    text(playAgain, width / 2, (height - 200) / 2 + 100);
   }
 
-  // rocks
-  if (random(1) < 0.015) {
-    rocks.push(new Rock());
-  }
+  else {
+    textAlign(LEFT);
+    textFont(font, 18);
+    text("Time: " + remainingTime, 20, 40);
+    text("Score: " + score, 20, 70);
 
-  for (let each of rocks) {
-    each.update();
-    each.display();
-  }
-
-  // game character
-  character.display();
-  if (keyIsPressed) {
-    if (keyCode === LEFT_ARROW) {
-      character.moveLeft();
+    // jewelries
+    if (random(1) < 0.02) {
+      jewelries.push(new Jewelry());
     }
 
-    else if (keyCode === RIGHT_ARROW) {
-      character.moveRight();
+    for (let each of jewelries) {
+      each.update();
+      each.display();
     }
+
+    // rocks
+    if (random(1) < 0.015) {
+      rocks.push(new Rock());
+    }
+
+    for (let each of rocks) {
+      each.update();
+      each.display();
+    }
+
+    // game character
+    character.display();
+    if (keyIsPressed) {
+      if (keyCode === LEFT_ARROW) {
+        character.moveLeft();
+      }
+
+      else if (keyCode === RIGHT_ARROW) {
+        character.moveRight();
+      }
+    }
+
+    if (remainingTime == 0) {
+      gameOver = true;
+    }
+  }
+}
+
+function keyPressed() {
+  if (keyCode === ENTER) {
+    if (!gameStart) {
+      gameStart = true;
+      gameOver = false;
+    }
+    else if (gameOver) {
+      gameStart = true;
+      gameOver = false;
+      score = 0;
+      remainingTime = 60;
+    }
+  }
+}
+
+function time() {
+  if (remainingTime > 0 && gameStart) {
+    remainingTime--;
   }
 }
 
