@@ -1,7 +1,8 @@
 // falling objects
 
 let character;
-let char_img;
+let charIndex;
+let charHeight = [168, 140, 130, 143, 143, 130];
 
 let ball_img, can_img, chicken_img, fish_img, rock1_img, rock2_img;
 
@@ -15,19 +16,26 @@ let gameStart = false;
 let gameOver = false;
 
 let score = 0;
-let remainingTime = 30;
-// let remainingTime = 20;
+let remainingTime = 60;
 
 let gameOverText;
 let playAgain;
 
 function preload() {
   font = loadFont('data/font0.otf');
+
   char_img = loadImage('data/character.png');
+  char2_img = loadImage('data/character_2.png');
+  char3_img = loadImage('data/character_3.png');
+  char4_img = loadImage('data/character_4.png');
+  char5_img = loadImage('data/character_5.png');
+  char6_img = loadImage('data/character_6.png');
+
   ball_img = loadImage('data/ball.png');
   can_img = loadImage('data/can.png');
   chicken_img = loadImage('data/chicken.png');
   fish_img = loadImage('data/fish.png');
+
   rock1_img = loadImage('data/rock1.png');
   rock2_img = loadImage('data/rock2.png');
 }
@@ -50,9 +58,6 @@ function setup() {
   fish = new Group();
   rocks1 = new Group();
   rocks2 = new Group();
-
-  character = createSprite(width / 2, height - 168, 100, 213);
-  character.addImage(char_img);
 }
 
 function draw() {
@@ -74,6 +79,44 @@ function draw() {
     textFont(font, 24);
     // text(howTo, width / 2 - 370, 250);
     text(howTo, width / 2, (height - 200) / 2 + 50);
+
+    chooseChar();
+    // if (keyWentDown('1')) {
+    //   charIndex = 0;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 213);
+    //   character.addImage(char_img);
+    // }
+    // else if (keyWentDown('2')) {
+    //   charIndex = 1;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 216);
+    //   character.addImage(char2_img);
+    // }
+    // else if (keyWentDown('3')) {
+    //   charIndex = 2;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 87);
+    //   character.addImage(char3_img);
+    // }
+    // else if (keyWentDown('4')) {
+    //   charIndex = 3;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 167);
+    //   character.addImage(char4_img);
+    // }
+    // else if (keyWentDown('5')) {
+    //   charIndex = 4;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 143);
+    //   character.addImage(char5_img);
+    // }
+    // else if (keyWentDown('6')) {
+    //   charIndex = 5;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 80);
+    //   character.addImage(char6_img);
+    // }
+
+    // else {
+    //   charIndex = 0;
+    //   character = createSprite(width / 2, height - charHeight[charIndex], 100, 213);
+    //   character.addImage(char_img);
+    // }
   }
 
   else if (gameOver) {
@@ -87,13 +130,15 @@ function draw() {
     textFont(font, 24);
     text(playAgain, width / 2, (height - 200) / 2 + 100);
 
-    // allSprites.removeSprites();
-    balls.removeSprites();
-    cans.removeSprites();
-    chickens.removeSprites();
-    fish.removeSprites();
-    rocks1.removeSprites();
-    rocks2.removeSprites();
+    remainingTime = 30;
+    // balls.removeSprites();
+    // cans.removeSprites();
+    // chickens.removeSprites();
+    // fish.removeSprites();
+    // rocks1.removeSprites();
+    // rocks2.removeSprites();
+
+    chooseChar();
   }
 
   else {
@@ -183,7 +228,7 @@ function draw() {
     }
 
     // rock1
-    if (random(1) < 0.003) {
+    if (random(1) < 0.005) {
       let newRock1 = createSprite(random(0, width), 20, 80, 59);
       newRock1.addImage(rock1_img);
       newRock1.addToGroup(rocks1);
@@ -203,7 +248,7 @@ function draw() {
     }
 
     // rock2
-    if (random(1) < 0.005) {
+    if (random(1) < 0.007) {
       let newRock2 = createSprite(random(0, width), 20, 60, 52);
       newRock2.addImage(rock2_img);
       newRock2.addToGroup(rocks2);
@@ -246,14 +291,48 @@ function draw() {
       character.velocity.x = 0;
     }
 
+    character.position.y = height - charHeight[charIndex];
     drawSprites();
   }
 
   if (remainingTime == 0) {
     gameOver = true;
+    allSprites.removeSprites();
   }
 }
 
+function chooseChar() {
+  if (keyWentDown('1')) {
+    charIndex = 0;
+    character = createSprite(width / 2, height - charHeight[charIndex], 100, 213);
+    character.addImage(char_img);
+  }
+  else if (keyWentDown('2')) {
+    charIndex = 1;
+    character = createSprite(width / 2, height - charHeight[charIndex], 100, 216);
+    character.addImage(char2_img);
+  }
+  else if (keyWentDown('3')) {
+    charIndex = 2;
+    character = createSprite(width / 2, height - charHeight[charIndex], 100, 87);
+    character.addImage(char3_img);
+  }
+  else if (keyWentDown('4')) {
+    charIndex = 3;
+    character = createSprite(width / 2, height - charHeight[charIndex], 100, 167);
+    character.addImage(char4_img);
+  }
+  else if (keyWentDown('5')) {
+    charIndex = 4;
+    character = createSprite(width / 2, height - charHeight[charIndex], 100, 143);
+    character.addImage(char5_img);
+  }
+  else if (keyWentDown('6')) {
+    charIndex = 5;
+    character = createSprite(width / 2, height - charHeight[charIndex], 100, 80);
+    character.addImage(char6_img);
+  }
+}
 
 function keyPressed() {
   if (keyCode === ENTER) {
@@ -265,8 +344,7 @@ function keyPressed() {
       gameStart = true;
       gameOver = false;
       score = 0;
-      // remainingTime = 20;
-      remainingTime = 30;
+      remainingTime = 60;
 
       // move the character to its initial position
       character.position.x = width / 2;
