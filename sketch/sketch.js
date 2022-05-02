@@ -1,28 +1,33 @@
 // falling objects
 
-// https://www.youtube.com/watch?v=_H9JIwWP7HQ
-
 let character;
 let charIndex;
-let charHeight = [168, 140, 130, 143, 143, 130];
+let charHeight = [168, 140, 130, 143, 143, 135];
 
 let ball_img, can_img, wool_img, chicken_img, fish_img, rock1_img, rock2_img;
 
 let balls, cans, wools, chickens, fishGroup, rocks1, rocks2;
 
 let font
-let startGameText;
 let howToText;
+let gameOverText;
+let startGameText;
 
 let gameStart = false;
 let gameOver = false;
 let howTo = false;
+let chooseMode = false;
 let chooseChar = false;
+
+let gameMode = 0;
 
 let score = 0;
 let remainingTime = 60;
+let survivingTime = 0;
 
-let gameOverText;
+// let duration = 10000;   // score appears for 3 seconds
+// let currTime;
+
 let playAgain;
 
 function preload() {
@@ -49,8 +54,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   background(255);
 
-  startGameText = "Press ENTER to start the game!";
-  chooseCharText = "Press ENTER to choose a characer";
+  startGameText = "Press ENTER to start game";
   howToText = "Press M key to learn how to play";
 
   gameOverText = "GAME OVER";
@@ -78,7 +82,7 @@ function draw() {
   if (howTo) {
     textAlign(CENTER);
     textFont(font, 32);
-    text(chooseCharText, width / 2, (height - 200) / 2 - 200);
+    text(startGameText, width / 2, (height - 200) / 2 - 190);
     textFont(font, 24);
 
     text("Use arrow keys to move your character", width / 2, (height - 200) / 2 - 120);
@@ -99,105 +103,281 @@ function draw() {
     image(can_img, width / 2 - 238, (height - 200) / 2 + 250);
     text(": 100", width / 2 - 150, (height - 200) / 2 + 283);
 
-    image(wool_img, width / 2 + 120, (height - 200) / 2 + 35);
-    text(": 200", width / 2 + 200, (height - 200) / 2 + 58)
+    image(wool_img, width / 2 + 120, (height - 200) / 2 + 70);
+    text(": 200", width / 2 + 200, (height - 200) / 2 + 93)
 
-    image(rock1_img, width / 2 + 95, (height - 200) / 2 + 95);
-    text(": -200", width / 2 + 200, (height - 200) / 2 + 133);
+    image(rock1_img, width / 2 + 95, (height - 200) / 2 + 130);
+    text(": -200", width / 2 + 200, (height - 200) / 2 + 168);
 
-    image(rock2_img, width / 2 + 110, (height - 200) / 2 + 170);
-    text(": -100", width / 2 + 200, (height - 200) / 2 + 203);
+    image(rock2_img, width / 2 + 110, (height - 200) / 2 + 205);
+    text(": -100", width / 2 + 200, (height - 200) / 2 + 238);
+  }
+
+  else if (!gameStart && chooseMode) {
+    textAlign(CENTER);
+    textFont(font, 24);
+    text("Choose a game mode by pressing:", width / 2, (height - 200) / 2 - 10);
+
+    textAlign(LEFT);
+    text("1: Gain a higher score in 60 seconds", width / 2 - 345, (height - 200) / 2 + 70);
+    text("2: Survive for a longer time, avoiding rocks", width / 2 - 345, (height - 200) / 2 + 120);
+
+    // text("Choose a game mode by pressing:", width / 2, (height - 200) / 2 - 150);
+    //
+    // textAlign(LEFT);
+    // text("1: Gain a higher score in 60 seconds", width / 2 - 345, (height - 200) / 2 - 70);
+    // text("2: Survive for a longer time, avoiding rocks", width / 2 - 345, (height - 200) / 2);
+
+    if (keyWentDown('1')) {
+      gameMode = 1;
+      chooseMode = false;
+      chooseChar = true;
+    }
+    else if (keyWentDown('2')) {
+      gameMode = 2;
+      chooseMode = false;
+      chooseChar = true;
+    }
   }
 
   else if (!gameStart && chooseChar) {
     textAlign(CENTER);
     textFont(font, 24);
-    text("Choose your character by pressing:", width / 2, (height - 200) / 2 - 200);
+    text("Choose your character by pressing:", width / 2, (height - 200) / 2 - 150);
 
     textAlign(LEFT);
-    textFont(font, 24);
-    text("1:", width / 2 - 300, (height - 200) / 2 - 120);
-    image(char_img, width / 2 - 240, (height - 200) / 2 - 160);
-    text("2:", width / 2 - 65, (height - 200) / 2 - 120);
-    image(char2_img, width / 2, (height - 200) / 2 - 160);
-    text("3:", width / 2 + 170, (height - 200) / 2 - 120);
-    image(char3_img, width / 2 + 230, (height - 200) / 2 - 110);
-    text("4:", width / 2 - 300, (height - 200) / 2 + 110);
-    image(char4_img, width / 2 - 240, (height - 200) / 2 + 90);
-    text("5:", width / 2 - 65, (height - 200) / 2 + 110);
-    image(char5_img, width / 2 + 5, (height - 200) / 2 + 100);
-    text("6:", width / 2 + 170, (height - 200) / 2 + 110);
-    image(char6_img, width / 2 + 240, (height - 200) / 2 + 115);
-
-    textAlign(CENTER);
-    textFont(font, 24);
-    text("After choosing your character, press ENTER to start", width / 2, (height - 200) / 2 + 325);
+    text("1:", width / 2 - 345, (height - 200) / 2 - 70);
+    image(char_img, width / 2 - 285, (height - 200) / 2 - 110);
+    text("2:", width / 2 - 110, (height - 200) / 2 - 70);
+    image(char2_img, width / 2 - 45, (height - 200) / 2 - 110);
+    text("3:", width / 2 + 125, (height - 200) / 2 - 70);
+    image(char3_img, width / 2 + 195, (height - 200) / 2 - 60);
+    text("4:", width / 2 - 345, (height - 200) / 2 + 160);
+    image(char4_img, width / 2 - 285, (height - 200) / 2 + 140);
+    text("5:", width / 2 - 110, (height - 200) / 2 + 160);
+    image(char5_img, width / 2 - 40, (height - 200) / 2 + 150);
+    text("6:", width / 2 + 125, (height - 200) / 2 + 160);
+    image(char6_img, width / 2 + 180, (height - 200) / 2 + 165);
 
     if (keyWentDown('1')) {
       charIndex = 0;
       character = createSprite(width / 2, height - charHeight[charIndex], 100, 213);
       character.addImage(char_img);
+
+      chooseChar = false;
+      gameStart = true;
+      gameOver = false;
+
+      currTime = millis();
     }
+
     else if (keyWentDown('2')) {
       charIndex = 1;
       character = createSprite(width / 2, height - charHeight[charIndex], 100, 216);
       character.addImage(char2_img);
+
+      chooseChar = false;
+      gameStart = true;
+      gameOver = false;
+
+      currTime = millis();
     }
+
     else if (keyWentDown('3')) {
       charIndex = 2;
       character = createSprite(width / 2, height - charHeight[charIndex], 100, 87);
       character.addImage(char3_img);
+
+      chooseChar = false;
+      gameStart = true;
+      gameOver = false;
+
+      currTime = millis();
     }
+
     else if (keyWentDown('4')) {
       charIndex = 3;
       character = createSprite(width / 2, height - charHeight[charIndex], 100, 167);
       character.addImage(char4_img);
+
+      chooseChar = false;
+      gameStart = true;
+      gameOver = false;
+
+      currTime = millis();
     }
+
     else if (keyWentDown('5')) {
       charIndex = 4;
       character = createSprite(width / 2, height - charHeight[charIndex], 100, 143);
       character.addImage(char5_img);
+
+      chooseChar = false;
+      gameStart = true;
+      gameOver = false;
+
+      currTime = millis();
     }
     else if (keyWentDown('6')) {
       charIndex = 5;
-      character = createSprite(width / 2, height - charHeight[charIndex], 100, 80);
+      character = createSprite(width / 2, height - charHeight[charIndex], 120, 96);
       character.addImage(char6_img);
+
+      chooseChar = false;
+      gameStart = true;
+      gameOver = false;
+
+      currTime = millis();
     }
   }
 
   else if (!gameStart) {
     textAlign(CENTER);
 
-    // START GAME
     textFont(font, 32);
-    text(chooseCharText, width / 2, (height - 200) / 2);
+    text(startGameText, width / 2, (height - 200) / 2);
 
-    // use arrow keys...
     textFont(font, 24);
     text(howToText, width / 2, (height - 200) / 2 + 50);
   }
 
   else if (gameOver) {
-    textAlign(CENTER);
-    textFont(font, 48);
-    text(gameOverText, width / 2, (height - 200) / 2 - 50);
+    if (gameMode === 1) {
+      textAlign(CENTER);
+      textFont(font, 48);
+      text(gameOverText, width / 2, (height - 200) / 2 - 50);
 
-    textFont(font, 32);
-    text("Score: " + score, width / 2, (height - 200) / 2);
+      textFont(font, 32);
+      text("Score: " + score, width / 2, (height - 200) / 2 + 25);
 
-    textFont(font, 24);
-    text(playAgain, width / 2, (height - 200) / 2 + 100);
-    text(howToText, width / 2, (height - 200) / 2 + 150);
-    remainingTime = 60;
+      textFont(font, 24);
+      text(playAgain, width / 2, (height - 200) / 2 + 100);
+      text(howToText, width / 2, (height - 200) / 2 + 150);
+      remainingTime = 60;
+    }
+
+    else if (gameMode === 2) {
+      textAlign(CENTER);
+      textFont(font, 48);
+      text(gameOverText, width / 2, (height - 200) / 2 - 70);
+
+      textFont(font, 32);
+      text("Score: " + score, width / 2, (height - 200) / 2 + 10);
+      text("Survived Time: " + survivingTime, width / 2, (height - 200) / 2 + 60);
+
+      textFont(font, 24);
+      text(playAgain, width / 2, (height - 200) / 2 + 140);
+      text(howToText, width / 2, (height - 200) / 2 + 190);
+    }
   }
 
   else {
     chooseChar = false;
 
-    textAlign(LEFT);
-    textFont(font, 18);
-    text("Time: " + remainingTime, 20, 40);
-    text("Score: " + score, 20, 70);
+    if (gameMode === 1) {  // high score
+      textAlign(LEFT);
+      textFont(font, 24);
+      text("Time: " + remainingTime, 20, 40);
+      text("Score: " + score, 20, 80);
+
+      // rock1
+      if (random(1) < 0.005) {
+        let newRock1 = createSprite(random(0, width), 20, 80, 59);
+        newRock1.addImage(rock1_img);
+        newRock1.addToGroup(rocks1);
+      }
+
+      for (let i = 0; i < rocks1.length; i++) {
+        let aRock1 = rocks1[i];
+        aRock1.position.y += 7;
+        if (aRock1.position.y > height - 120) {
+          aRock1.remove();
+        }
+      }
+
+      if (character.collide(rocks1)) {
+        character.overlap(rocks1, collect);
+        score -= 200;
+        text("-200", character.position.x + 50, height - 200);
+      }
+
+      // rock2
+      if (random(1) < 0.007) {
+        let newRock2 = createSprite(random(0, width), 20, 60, 52);
+        newRock2.addImage(rock2_img);
+        newRock2.addToGroup(rocks2);
+      }
+
+      for (let i = 0; i < rocks2.length; i++) {
+        let aRock2 = rocks2[i];
+        aRock2.position.y += 4;
+        if (aRock2.position.y > height - 120) {
+          aRock2.remove();
+        }
+      }
+
+      if (character.collide(rocks2)) {
+        character.overlap(rocks2, collect);
+        score -= 100;
+        text("-100", character.position.x + 50, height - 200);
+      }
+
+      if (remainingTime == 0) {
+        gameOver = true;
+        allSprites.removeSprites();
+      }
+    }
+
+    else if (gameMode === 2) {  // surviving
+      timeIncrease(currTime);
+
+      textAlign(LEFT);
+      textFont(font, 24);
+      text("Time: " + survivingTime, 20, 40);
+      text("Score: " + score, 20, 80);
+
+      // rock1
+      if (random(1) < 0.005) {
+        let newRock1 = createSprite(random(0, width), 20, 80, 59);
+        newRock1.addImage(rock1_img);
+        newRock1.addToGroup(rocks1);
+      }
+
+      for (let i = 0; i < rocks1.length; i++) {
+        let aRock1 = rocks1[i];
+        aRock1.position.y += 7;
+        if (aRock1.position.y > height - 120) {
+          aRock1.remove();
+        }
+      }
+
+      if (character.collide(rocks1)) {
+        character.overlap(rocks1, collect);
+        gameOver = true;
+        allSprites.removeSprites();
+      }
+
+      // rock2
+      if (random(1) < 0.007) {
+        let newRock2 = createSprite(random(0, width), 20, 60, 52);
+        newRock2.addImage(rock2_img);
+        newRock2.addToGroup(rocks2);
+      }
+
+      for (let i = 0; i < rocks2.length; i++) {
+        let aRock2 = rocks2[i];
+        aRock2.position.y += 4;
+        if (aRock2.position.y > height - 120) {
+          aRock2.remove();
+        }
+      }
+
+      if (character.collide(rocks2)) {
+        character.overlap(rocks2, collect);
+        gameOver = true;
+        allSprites.removeSprites();
+      }
+    }
 
     // ball
     if (random(1) < 0.009) {
@@ -214,9 +394,11 @@ function draw() {
       }
     }
 
+    textFont(font, 24);
     if (character.collide(balls)) {
       character.overlap(balls, collect);
       score += 30;
+      text("+30", character.position.x + 50, height - 200);
     }
 
     // can
@@ -237,6 +419,7 @@ function draw() {
     if (character.collide(cans)) {
       character.overlap(cans, collect);
       score += 100;
+      text("+100", character.position.x + 50, height - 200);
     }
 
     // wool
@@ -257,6 +440,7 @@ function draw() {
     if (character.collide(wools)) {
       character.overlap(wools, collect);
       score += 200;
+      text("+200", character.position.x + 50, height - 200);
     }
 
     // chicken
@@ -277,6 +461,7 @@ function draw() {
     if (character.collide(chickens)) {
       character.overlap(chickens, collect);
       score += 70;
+      text("+70", character.position.x + 50, height - 200);
     }
 
     // fish
@@ -295,48 +480,12 @@ function draw() {
     }
 
     if (character.collide(fish)) {
+      let collidedTime = remainingTime;
       character.overlap(fish, collect);
       score += 50;
-    }
-
-    // rock1
-    if (random(1) < 0.005) {
-      let newRock1 = createSprite(random(0, width), 20, 80, 59);
-      newRock1.addImage(rock1_img);
-      newRock1.addToGroup(rocks1);
-    }
-
-    for (let i = 0; i < rocks1.length; i++) {
-      let aRock1 = rocks1[i];
-      aRock1.position.y += 7;
-      if (aRock1.position.y > height - 120) {
-        aRock1.remove();
-      }
-    }
-
-    if (character.collide(rocks1)) {
-      character.overlap(rocks1, collect);
-      score -= 200;
-    }
-
-    // rock2
-    if (random(1) < 0.007) {
-      let newRock2 = createSprite(random(0, width), 20, 60, 52);
-      newRock2.addImage(rock2_img);
-      newRock2.addToGroup(rocks2);
-    }
-
-    for (let i = 0; i < rocks2.length; i++) {
-      let aRock2 = rocks2[i];
-      aRock2.position.y += 4;
-      if (aRock2.position.y > height - 120) {
-        aRock2.remove();
-      }
-    }
-
-    if (character.collide(rocks2)) {
-      character.overlap(rocks2, collect);
-      score -= 100;
+      // if (remainingTime > collidedTime - 10) {
+      //   text("+50", character.position.x + 50, height - 200);
+      // }
     }
 
     // game character
@@ -359,6 +508,7 @@ function draw() {
         character.velocity.x = 0;
       }
     }
+
     else {
       character.velocity.x = 0;
     }
@@ -366,28 +516,18 @@ function draw() {
     character.position.y = height - charHeight[charIndex];
     drawSprites();
   }
-
-  if (remainingTime == 0) {
-    gameOver = true;
-    allSprites.removeSprites();
-  }
 }
 
 function keyPressed() {
+  console.log(keyCode);
   if (keyCode === ENTER) {
     if (!gameStart) {
       if (howTo) {
         howTo = false;
       }
 
-      if (!chooseChar) {
-        chooseChar = true;
-      }
-
-      else if (chooseChar) {
-        chooseChar = false;
-        gameStart = true;
-        gameOver = false;
+      if (!chooseMode && !chooseChar) {
+        chooseMode = true;
       }
     }
 
@@ -396,14 +536,15 @@ function keyPressed() {
         howTo = false;
       }
 
-      if (!chooseChar) {
-        chooseChar = true;
+      if (!chooseMode && !chooseChar) {
+        chooseMode = true;
       }
-      gameOver = false;
+
       gameStart = false;
 
       score = 0;
       remainingTime = 60;
+      survivingTime = 0;
 
       // move the character to its initial position
       character.position.x = width / 2;
@@ -420,6 +561,14 @@ function keyPressed() {
 function timeDecrease() {
   if (remainingTime > 0 && gameStart) {
     remainingTime--;
+  }
+}
+
+function timeIncrease(currTime) {
+  if (gameStart && !gameOver) {
+    if (int((millis() - currTime) / 1000) != survivingTime) {
+      survivingTime++;
+    }
   }
 }
 
