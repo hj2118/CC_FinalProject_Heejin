@@ -22,11 +22,18 @@ let chooseChar = false;
 let gameMode = 0;
 
 let score = 0;
+let scores = [];
 let remainingTime = 60;
 let survivingTime = 0;
 
-// let duration = 10000;   // score appears for 3 seconds
-// let currTime;
+let spellTime = 300;
+let slowDown = false;
+let freeze = false;
+
+let rate1 = 0.005;
+let rate2 = 0.007;
+
+let fallFaster = false;
 
 let playAgain;
 
@@ -60,6 +67,7 @@ function setup() {
   gameOverText = "GAME OVER";
   playAgain = "To play again press ENTER!";
 
+  // https://editor.p5js.org/denaplesk2/sketches/ryIBFP_lG
   setInterval(timeDecrease, 1000);
 
   balls = new Group();
@@ -115,18 +123,15 @@ function draw() {
 
   else if (!gameStart && chooseMode) {
     textAlign(CENTER);
+    textFont(font, 28);
+    text("Choose a game mode by pressing:", width / 2, (height - 200) / 2 - 45);
+
     textFont(font, 24);
-    text("Choose a game mode by pressing:", width / 2, (height - 200) / 2 - 10);
-
     textAlign(LEFT);
-    text("1: Gain a higher score in 60 seconds", width / 2 - 345, (height - 200) / 2 + 70);
-    text("2: Survive for a longer time, avoiding rocks", width / 2 - 345, (height - 200) / 2 + 120);
-
-    // text("Choose a game mode by pressing:", width / 2, (height - 200) / 2 - 150);
-    //
-    // textAlign(LEFT);
-    // text("1: Gain a higher score in 60 seconds", width / 2 - 345, (height - 200) / 2 - 70);
-    // text("2: Survive for a longer time, avoiding rocks", width / 2 - 345, (height - 200) / 2);
+    text("1: Gain a higher score in 60 seconds", width / 2 - 345, (height - 200) / 2 + 40);
+    text("You will be debuffed if you collide with a rock", width / 2 - 309, (height - 200) / 2 + 90);
+    text("2: Survive for a longer time, avoiding rocks", width / 2 - 345, (height - 200) / 2 + 150);
+    text("Rocks will fall more often as you survive longer", width / 2 - 309, (height - 200) / 2 + 200);
 
     if (keyWentDown('1')) {
       gameMode = 1;
@@ -218,6 +223,7 @@ function draw() {
 
       currTime = millis();
     }
+
     else if (keyWentDown('6')) {
       charIndex = 5;
       character = createSprite(width / 2, height - charHeight[charIndex], 120, 96);
@@ -233,10 +239,11 @@ function draw() {
 
   else if (!gameStart) {
     textAlign(CENTER);
-
+    // START GAME
     textFont(font, 32);
     text(startGameText, width / 2, (height - 200) / 2);
 
+    // use arrow keys...
     textFont(font, 24);
     text(howToText, width / 2, (height - 200) / 2 + 50);
   }
@@ -271,8 +278,27 @@ function draw() {
     }
   }
 
-  else {
+  else {  // game starts
     chooseChar = false;
+
+    for (let i = 0; i < scores.length; i++) {
+			let aScore = scores[i];
+			aScore.update();
+			aScore.display();
+		}
+
+    if (freeze) {
+      textAlign(CENTER);
+      textFont(font, 32);
+      text("FREEZE!", width - 150, height / 2);
+    }
+
+    if (slowDown) {
+      textAlign(CENTER);
+      textFont(font, 32);
+      text("SLOW", width - 155, (height - 200) / 2 - 25);
+      text("DOWN!", width - 150, (height - 200) / 2 + 25);
+    }
 
     if (gameMode === 1) {  // high score
       textAlign(LEFT);
@@ -298,7 +324,9 @@ function draw() {
       if (character.collide(rocks1)) {
         character.overlap(rocks1, collect);
         score -= 200;
-        text("-200", character.position.x + 50, height - 200);
+        scores.push(new TempScore("-200", character.position.x));
+        freeze = true;
+        // text("-200", character.position.x + 50, height - 200);
       }
 
       // rock2
@@ -319,7 +347,25 @@ function draw() {
       if (character.collide(rocks2)) {
         character.overlap(rocks2, collect);
         score -= 100;
-        text("-100", character.position.x + 50, height - 200);
+        scores.push(new TempScore("-100", character.position.x));
+        slowDown = true;
+        // text("-100", character.position.x + 50, height - 200);
+      }
+
+      if (slowDown) {
+        spellTime -= 2;
+        if (spellTime < 0) {
+          slowDown = false;
+          spellTime = 300;
+        }
+      }
+
+      if (freeze) {
+        spellTime -= 2;
+        if (spellTime < 0) {
+          freeze = false;
+          spellTime = 300;
+        }
       }
 
       if (remainingTime == 0) {
@@ -337,7 +383,11 @@ function draw() {
       text("Score: " + score, 20, 80);
 
       // rock1
-      if (random(1) < 0.005) {
+      if ((survivingTime > 0) && (survivingTime % 20 === 0)) {
+        rate1 += 0.00005;
+      }
+      console.log(rate1);
+      if (random(1) < rate1) {
         let newRock1 = createSprite(random(0, width), 20, 80, 59);
         newRock1.addImage(rock1_img);
         newRock1.addToGroup(rocks1);
@@ -358,7 +408,11 @@ function draw() {
       }
 
       // rock2
-      if (random(1) < 0.007) {
+      if ((survivingTime > 0) && (survivingTime % 20 === 0)) {
+        rate2 += 0.00005;
+      }
+
+      if (random(1) < rate2) {
         let newRock2 = createSprite(random(0, width), 20, 60, 52);
         newRock2.addImage(rock2_img);
         newRock2.addToGroup(rocks2);
@@ -388,7 +442,9 @@ function draw() {
 
     for (let i = 0; i < balls.length; i++) {
       let aBall = balls[i];
+
       aBall.position.y += 2;
+
       if (aBall.position.y > height - 120) {
         aBall.remove();
       }
@@ -398,7 +454,8 @@ function draw() {
     if (character.collide(balls)) {
       character.overlap(balls, collect);
       score += 30;
-      text("+30", character.position.x + 50, height - 200);
+      scores.push(new TempScore("+30", character.position.x));
+      // text("+30", character.position.x + 50, height - 200);
     }
 
     // can
@@ -419,7 +476,8 @@ function draw() {
     if (character.collide(cans)) {
       character.overlap(cans, collect);
       score += 100;
-      text("+100", character.position.x + 50, height - 200);
+      scores.push(new TempScore("+100", character.position.x));
+      // text("+100", character.position.x + 50, height - 200);
     }
 
     // wool
@@ -440,7 +498,8 @@ function draw() {
     if (character.collide(wools)) {
       character.overlap(wools, collect);
       score += 200;
-      text("+200", character.position.x + 50, height - 200);
+      scores.push(new TempScore("+200", character.position.x));
+      // text("+200", character.position.x + 50, height - 200);
     }
 
     // chicken
@@ -461,7 +520,8 @@ function draw() {
     if (character.collide(chickens)) {
       character.overlap(chickens, collect);
       score += 70;
-      text("+70", character.position.x + 50, height - 200);
+      scores.push(new TempScore("+70", character.position.x));
+      // text("+70", character.position.x + 50, height - 200);
     }
 
     // fish
@@ -483,15 +543,23 @@ function draw() {
       let collidedTime = remainingTime;
       character.overlap(fish, collect);
       score += 50;
-      // if (remainingTime > collidedTime - 10) {
-      //   text("+50", character.position.x + 50, height - 200);
-      // }
+      scores.push(new TempScore("+50", character.position.x));
     }
 
     // game character
     if (keyDown(LEFT_ARROW)) {
       character.mirrorX(-1);
-      character.velocity.x = -3;
+      if (slowDown) {
+        character.velocity.x = -1.5;
+      }
+
+      else if (freeze) {
+        character.velocity.x = 0;
+      }
+
+      else {
+        character.velocity.x = -3;
+      }
 
       // check the left edge
       if (character.position.x < 50) {
@@ -501,7 +569,17 @@ function draw() {
 
     else if (keyDown(RIGHT_ARROW)) {
       character.mirrorX(1);
-      character.velocity.x = 3;
+      if (slowDown) {
+        character.velocity.x = 1.5;
+      }
+
+      else if (freeze) {
+        character.velocity.x = 0;
+      }
+
+      else {
+        character.velocity.x = 3;
+      }
 
       // check the right edge
       if (character.position.x > width - 50) {
@@ -519,7 +597,6 @@ function draw() {
 }
 
 function keyPressed() {
-  console.log(keyCode);
   if (keyCode === ENTER) {
     if (!gameStart) {
       if (howTo) {
@@ -545,6 +622,9 @@ function keyPressed() {
       score = 0;
       remainingTime = 60;
       survivingTime = 0;
+
+      rate1 = 0.005;
+      rate2 = 0.007;
 
       // move the character to its initial position
       character.position.x = width / 2;
@@ -574,4 +654,32 @@ function timeIncrease(currTime) {
 
 function collect(collector, collected) {
   collected.remove();
+}
+
+class TempScore {
+	constructor(scoreAmount, x) {
+		this.amount = scoreAmount;
+		this.position = createVector(x + 50, height - 200);
+		this.lifespan = 100;
+	}
+
+	update() {
+		this.lifespan -= 2;
+	}
+
+	display() {
+		if (!this.isDead() && gameStart) {
+			textFont(font, 24);
+			text(this.amount, this.position.x, this.position.y);
+		}
+	}
+
+	isDead() {
+		if (this.lifespan < 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 }
