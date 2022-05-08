@@ -1,47 +1,52 @@
 // falling objects
 
+// game character
 let character;
-let charIndex;
-let charHeight = [168, 140, 130, 143, 143, 135];
+let charIndex = 6;  // initializes to 6 if the character is not chosen, since there are 6 characters available
+let chars = []; // will store images of the characters and their heights
 
+// images
 let ball_img, can_img, wool_img, chicken_img, fish_img, rock1_img, rock2_img;
-
 let cry1_img, cry2_img, cry3_img, cry4_img, cry5_img, cry6_img;
 let cry_imgs = [];
 let cup_img;
 
+// groups that store the items created
 let balls, cans, wools, chickens, fishGroup, rocks1, rocks2;
 
-let font
-let howToText;
-let gameOverText;
-let startGameText;
+// texts
+let playAgainText, howToText, gameOverText, startGameText;
+let font;
 
+// boolean variables that control the entire game
 let gameStart = false;
 let gameOver = false;
 let howTo = false;
 let chooseMode = false;
 let chooseChar = false;
 
+// a variable to store the mode of game
 let gameMode = 0;
 
+// scores
 let score = 0;
 let scores = [];
+
+// times
 let remainingTime = 60;
 let survivingTime = 0;
-
 let buffTime = 300;
+
+// buffs
 let slowDown = false;
 let speedUp = false;
 let freeze = false;
 
+// rates of rocks falling
 let rate1 = 0.005;
 let rate2 = 0.007;
 
-let fallFaster = false;
-
-let playAgain;
-
+// preloads the font and images
 function preload() {
   font = loadFont('data/font0.otf');
 
@@ -79,11 +84,13 @@ function setup() {
   howToText = "Press M key to learn how to play";
 
   gameOverText = "GAME OVER";
-  playAgain = "To play again press ENTER!";
+  playAgainText = "To play again press ENTER!";
 
   // https://editor.p5js.org/denaplesk2/sketches/ryIBFP_lG
+  // time decreases in every second
   setInterval(timeDecrease, 1000);
 
+  // initializes the groups to store falling items created
   balls = new Group();
   cans = new Group();
   wools = new Group();
@@ -92,6 +99,9 @@ function setup() {
   rocks1 = new Group();
   rocks2 = new Group();
 
+  // an array that stores images and the values needed to display the images
+  // since the size of the images are all different
+  chars = [[char_img, 168], [char2_img, 140], [char3_img, 130], [char4_img, 143], [char5_img, 143], [char6_img, 135]];
   cry_imgs = [[cry1_img, 300, 100], [cry2_img, 300, 120], [cry3_img, 290, 0], [cry4_img, 300, 100], [cry5_img, 300, 70], [cry6_img, 330, 0]];
 }
 
@@ -99,10 +109,11 @@ function draw() {
   // background
   noStroke();
   fill(135, 206, 235);
-  rect(0, 0, width, height - 100);
+  rect(0, 0, width, height - 100);  // skyblue
   fill(139, 69, 19);
-  rect(0, height - 100, width, 100);
+  rect(0, height - 100, width, 100);  // brown
 
+  // how to guide is displayed
   if (howTo) {
     textAlign(CENTER);
     textFont(font, 32);
@@ -114,6 +125,7 @@ function draw() {
 
     text("Points:", width / 2 - 247, (height - 200) / 2);
 
+    // images of the items and their points
     textAlign(LEFT);
     image(ball_img, width / 2 - 240, (height - 200) / 2 + 30);
     text(": 30", width / 2 - 150, (height - 200) / 2 + 58)
@@ -137,11 +149,13 @@ function draw() {
     text(": -100", width / 2 + 200, (height - 200) / 2 + 238);
   }
 
+  // choosing mode screen is displayed
   else if (!gameStart && chooseMode) {
     textAlign(CENTER);
     textFont(font, 28);
     text("Choose a game mode by pressing:", width / 2, (height - 200) / 2 - 140);
 
+    // description of each mode
     textFont(font, 24);
     textAlign(LEFT);
     text("1: Gain a higher score in 60 seconds", width / 2 - 345, (height - 200) / 2 - 55);
@@ -151,28 +165,31 @@ function draw() {
     text("3: Survive for a longer time, avoiding rocks", width / 2 - 345, (height - 200) / 2 + 165);
     text("Rocks will fall more often as you survive longer", width / 2 - 309, (height - 200) / 2 + 215);
 
+    // if the user preeses either of 1, 2, or 3 key to choose the mode
+    // move to the screen where the user has to choose the game character
     if (keyWentDown('1')) {
       gameMode = 1;
-      chooseMode = false;
-      chooseChar = true;
+      modeChosen();
     }
+
     else if (keyWentDown('2')) {
       gameMode = 2;
-      chooseMode = false;
-      chooseChar = true;
+      modeChosen();
     }
+
     else if (keyWentDown('3')) {
       gameMode = 3;
-      chooseMode = false;
-      chooseChar = true;
+      modeChosen();
     }
   }
 
+  // images of the game characters available are displayed and the user can choose
   else if (!gameStart && chooseChar) {
     textAlign(CENTER);
     textFont(font, 24);
     text("Choose your character by pressing:", width / 2, (height - 200) / 2 - 150);
 
+    // displaying the images
     textAlign(LEFT);
     text("1:", width / 2 - 345, (height - 200) / 2 - 70);
     image(char_img, width / 2 - 285, (height - 200) / 2 - 110);
@@ -187,98 +204,57 @@ function draw() {
     text("6:", width / 2 + 125, (height - 200) / 2 + 160);
     image(char6_img, width / 2 + 180, (height - 200) / 2 + 165);
 
+    // sets charIndex to create the game character, based on the key pressed
     if (keyWentDown('1')) {
       charIndex = 0;
-      character = createSprite(width / 2, height - charHeight[charIndex], 100, 213);
-      character.addImage(char_img);
-
-      chooseChar = false;
-      gameStart = true;
-      gameOver = false;
-
-      currTime = millis();
     }
 
     else if (keyWentDown('2')) {
       charIndex = 1;
-      character = createSprite(width / 2, height - charHeight[charIndex], 100, 216);
-      character.addImage(char2_img);
-
-      chooseChar = false;
-      gameStart = true;
-      gameOver = false;
-
-      currTime = millis();
     }
 
     else if (keyWentDown('3')) {
       charIndex = 2;
-      character = createSprite(width / 2, height - charHeight[charIndex], 100, 87);
-      character.addImage(char3_img);
-
-      chooseChar = false;
-      gameStart = true;
-      gameOver = false;
-
-      currTime = millis();
     }
 
     else if (keyWentDown('4')) {
       charIndex = 3;
-      character = createSprite(width / 2, height - charHeight[charIndex], 100, 167);
-      character.addImage(char4_img);
-
-      chooseChar = false;
-      gameStart = true;
-      gameOver = false;
-
-      currTime = millis();
     }
 
     else if (keyWentDown('5')) {
       charIndex = 4;
-      character = createSprite(width / 2, height - charHeight[charIndex], 100, 143);
-      character.addImage(char5_img);
-
-      chooseChar = false;
-      gameStart = true;
-      gameOver = false;
-
-      currTime = millis();
     }
     else if (keyWentDown('6')) {
       charIndex = 5;
-      character = createSprite(width / 2, height - charHeight[charIndex], 120, 96);
-      character.addImage(char6_img);
+    }
 
-      chooseChar = false;
-      gameStart = true;
-      gameOver = false;
-
-      currTime = millis();
+    // if the character is chosen, create the character sprite by calling displayChar() function
+    if (charIndex != 6) {
+      displayChar(charIndex);
     }
   }
 
+  // initial screen
   else if (!gameStart) {
     textAlign(CENTER);
-    // START GAME
     textFont(font, 32);
     text(startGameText, width / 2, (height - 200) / 2);
 
-    // use arrow keys...
     textFont(font, 24);
     text(howToText, width / 2, (height - 200) / 2 + 50);
   }
 
+  // game over screen
   else if (gameOver) {
     textAlign(CENTER);
     textFont(font, 48);
     text(gameOverText, width / 2, (height - 200) / 2 - 50);
 
     textFont(font, 24);
-    text(playAgain, width / 2, (height - 200) / 2 + 100);
+    text(playAgainText, width / 2, (height - 200) / 2 + 100);
     text(howToText, width / 2, (height - 200) / 2 + 150);
 
+    // printing out the results: score or survived time
     textFont(font, 32);
     if ((gameMode === 1) || (gameMode === 2)) {
       text("Score: " + score, width / 2, (height - 200) / 2 + 25);
@@ -289,24 +265,35 @@ function draw() {
       text("Survived Time: " + survivingTime, width / 2, (height - 200) / 2 + 25);
     }
 
+    // displaying the game character with a crying face
     image(cry_imgs[charIndex][0], width - cry_imgs[charIndex][1], (height - 200) / 2 - cry_imgs[charIndex][2]);
+
+    // displaying the items falling out of the cup
     image(cup_img, 100, (height - 200) / 2 - 120);
     image(wool_img, 200, (height - 200) / 2 - 35);
     image(can_img, 210, (height - 200) / 2 + 10);
     image(chicken_img, 220, (height - 200) / 2 + 70);
     image(fish_img, 230, (height - 200) / 2 + 145);
     image(ball_img, 250, (height - 200) / 2 + 195);
+
+    // remove all the temporary scores
+    for (let i = 0; i < scores.length; i++) {
+      scores[i].dead = true;
+    }
   }
 
-  else {  // game starts
+  // game starts
+  else {
     chooseChar = false;
 
+    // diplays the points gained or loosed whenever the character collides with items
     for (let i = 0; i < scores.length; i++) {
 			let aScore = scores[i];
 			aScore.update();
 			aScore.display();
 		}
 
+    // notifies any buff in effect on the right side of the screen
     textAlign(CENTER);
     textFont(font, 32);
 
@@ -324,59 +311,23 @@ function draw() {
       text("UP!", width - 150, (height - 200) / 2 + 25);
     }
 
+    // if the first game mode was selected
+    // gaining a high score in 60 seconds
+    // if collides with:
+      // rock1: freeze
+      // rock2: slow down
+      // wool: speed up
     if (gameMode === 1) {  // high score
+      // displaying the remaining time and the current score
       textAlign(LEFT);
       textFont(font, 24);
       text("Time: " + remainingTime, 20, 40);
       text("Score: " + score, 20, 80);
 
-      // rock1
-      if (random(1) < 0.005) {
-        let newRock1 = createSprite(random(0, width), 20, 80, 59);
-        newRock1.addImage(rock1_img);
-        newRock1.addToGroup(rocks1);
-      }
+      rocks(gameMode);
 
-      for (let i = 0; i < rocks1.length; i++) {
-        let aRock1 = rocks1[i];
-        aRock1.position.y += 7;
-        if (aRock1.position.y > height - 120) {
-          aRock1.remove();
-        }
-      }
-
-      if (character.collide(rocks1)) {
-        character.overlap(rocks1, collect);
-        score -= 200;
-        scores.push(new TempScore("-200", character.position.x));
-        freeze = true;
-      }
-
-      // rock2
-      if (random(1) < 0.007) {
-        let newRock2 = createSprite(random(0, width), 20, 60, 52);
-
-        newRock2.addImage(rock2_img);
-        newRock2.addToGroup(rocks2);
-      }
-
-      for (let i = 0; i < rocks2.length; i++) {
-        let aRock2 = rocks2[i];
-
-        aRock2.position.y += 4;
-
-        if (aRock2.position.y > height - 120) {
-          aRock2.remove();
-        }
-      }
-
-      if (character.collide(rocks2)) {
-        character.overlap(rocks2, collect);
-        score -= 100;
-        scores.push(new TempScore("-100", character.position.x));
-        slowDown = true;
-      }
-
+      // buffs
+      // slowDown buff
       if (slowDown) {
         buffTime -= 2;
         if (buffTime < 0) {
@@ -385,6 +336,7 @@ function draw() {
         }
       }
 
+      // freeze buff
       if (freeze) {
         buffTime -= 2;
         if (buffTime < 0) {
@@ -393,13 +345,18 @@ function draw() {
         }
       }
 
+      // if there is no time remaining, the game is over
       if (remainingTime == 0) {
         gameOver = true;
-        allSprites.removeSprites();
+        allSprites.removeSprites(); // every sprite on the screen is removed
+        buffTime = 0; // to remove the buff text on the right
       }
     }
 
+    // if second or third game mode
+    // the rates of rocks falling increase every 15 seconds
     else if ((gameMode === 2) || (gameMode === 3)) {
+      // displaying the score or time played at the top left corner
       textAlign(LEFT);
       textFont(font, 24);
 
@@ -411,142 +368,32 @@ function draw() {
         text("Time: " + survivingTime, 20, 40);
       }
 
+      // displaying the time left until more rocks to fall
       text("Until More Rocks: " + (15 - (survivingTime % 15)), 20, 80);
 
+      // increasing the survivingTime eac second
+      // currTime is in milliseconds
       timeIncrease(currTime);
 
-      // rock1
-      if (gameMode === 2) {
-        if ((survivingTime > 0) && (survivingTime % 20 === 0)) {
-          rate1 += 0.00005;
-          rate2 += 0.00005;
+      // increasing the rates of rocks falling every 15 seconds
+      // displaying the text "MORE ROCKS!" to notify it
+      if ((survivingTime > 0) && (survivingTime % 15 === 0)) {
+        rate1 += 0.0002;
+        rate2 += 0.0002;
 
-          text("MORE", width - 138, (height - 200) / 2 - 25);
-          text("ROCKS!", width - 150, (height - 200) / 2 + 25);
-
-        }
+        text("MORE", width - 138, (height - 200) / 2 - 25);
+        text("ROCKS!", width - 150, (height - 200) / 2 + 25);
       }
 
-      else {
-        if ((survivingTime > 0) && (survivingTime % 15 === 0)) {
-          rate1 += 0.0002;
-          rate2 += 0.0002;
-
-          text("MORE", width - 138, (height - 200) / 2 - 25);
-          text("ROCKS!", width - 150, (height - 200) / 2 + 25);
-        }
-      }
-
-      if (random(1) < rate1) {
-        let newRock1 = createSprite(random(0, width), 20, 80, 59);
-        newRock1.addImage(rock1_img);
-        newRock1.addToGroup(rocks1);
-      }
-
-      for (let i = 0; i < rocks1.length; i++) {
-        let aRock1 = rocks1[i];
-        aRock1.position.y += 7;
-        if (aRock1.position.y > height - 120) {
-          aRock1.remove();
-        }
-      }
-
-      if (character.collide(rocks1)) {
-        character.overlap(rocks1, collect);
-        gameOver = true;
-        allSprites.removeSprites();
-      }
-
-      // rock2
-      if (random(1) < rate2) {
-        let newRock2 = createSprite(random(0, width), 20, 60, 52);
-        newRock2.addImage(rock2_img);
-        newRock2.addToGroup(rocks2);
-      }
-
-      for (let i = 0; i < rocks2.length; i++) {
-        let aRock2 = rocks2[i];
-        aRock2.position.y += 4;
-        if (aRock2.position.y > height - 120) {
-          aRock2.remove();
-        }
-      }
-
-      if (character.collide(rocks2)) {
-        character.overlap(rocks2, collect);
-        gameOver = true;
-        allSprites.removeSprites();
-      }
+      rocks(gameMode);
     }
 
+    // if first or second game mode
+    // items for points fall
     if (gameMode != 3) {
-      // ball
-      if (random(1) < 0.009) {
-        let newBall = createSprite(random(0, width), 20, 50, 50);
-        newBall.addImage(ball_img);
-        newBall.addToGroup(balls);
-      }
+      items();
 
-      for (let i = 0; i < balls.length; i++) {
-        let aBall = balls[i];
-
-        aBall.position.y += 2;
-
-        if (aBall.position.y > height - 120) {
-          aBall.remove();
-        }
-      }
-
-      textFont(font, 24);
-      if (character.collide(balls)) {
-        character.overlap(balls, collect);
-        score += 30;
-        scores.push(new TempScore("+30", character.position.x));
-      }
-
-      // can
-      if (random(1) < 0.004) {
-        let newCan = createSprite(random(0, width), 20, 50, 48);
-        newCan.addImage(can_img);
-        newCan.addToGroup(cans);
-      }
-
-      for (let i = 0; i < cans.length; i++) {
-        let aCan = cans[i];
-        aCan.position.y += 6;
-        if (aCan.position.y > height - 120) {
-          aCan.remove();
-        }
-      }
-
-      if (character.collide(cans)) {
-        character.overlap(cans, collect);
-        score += 100;
-        scores.push(new TempScore("+100", character.position.x));
-      }
-
-      // wool
-      if (random(1) < 0.002) {
-        let newWool = createSprite(random(0, width), 20, 40, 38);
-        newWool.addImage(wool_img);
-        newWool.addToGroup(wools);
-      }
-
-      for (let i = 0; i < wools.length; i++) {
-        let aWool = wools[i];
-        aWool.position.y += 9;
-        if (aWool.position.y > height - 120) {
-          aWool.remove();
-        }
-      }
-
-      if (character.collide(wools)) {
-        character.overlap(wools, collect);
-        score += 200;
-        scores.push(new TempScore("+200", character.position.x));
-        speedUp = true;
-      }
-
+      // speedUp buff is on
       if (speedUp) {
         buffTime -= 2;
         if (buffTime < 0) {
@@ -554,193 +401,364 @@ function draw() {
           buffTime = 300;
         }
       }
-
-      // chicken
-      if (random(1) < 0.006) {
-        let newChicken = createSprite(random(0, width), 20, 70, 70);
-        newChicken.addImage(chicken_img);
-        newChicken.addToGroup(chickens);
-      }
-
-      for (let i = 0; i < chickens.length; i++) {
-        let aChicken = chickens[i];
-        aChicken.position.y += 4;
-        if (aChicken.position.y > height - 120) {
-          aChicken.remove();
-        }
-      }
-
-      if (character.collide(chickens)) {
-        character.overlap(chickens, collect);
-        score += 70;
-        scores.push(new TempScore("+70", character.position.x));
-      }
-
-      // fish
-      if (random(1) < 0.008) {
-        let newFish = createSprite(random(0, width), 20, 80, 40);
-        newFish.addImage(fish_img);
-        newFish.addToGroup(fish);
-      }
-
-      for (let i = 0; i < fish.length; i++) {
-        let aFish = fish[i];
-        aFish.position.y += 3;
-        if (aFish.position.y > height - 120) {
-          aFish.remove();
-        }
-      }
-
-      if (character.collide(fish)) {
-        let collidedTime = remainingTime;
-        character.overlap(fish, collect);
-        score += 50;
-        scores.push(new TempScore("+50", character.position.x));
-      }
     }
 
     // game character
+    // the character moves to the left
     if (keyDown(LEFT_ARROW)) {
+      // changes the direction of the image
       character.mirrorX(-1);
+
+      // if slowDown buff is on (collides with rock2)
       if (slowDown) {
         character.velocity.x = -1.5;
       }
 
+      // if speedUp buff is on (wool)
       else if (speedUp) {
         character.velocity.x = - 4.5;
       }
 
+      // if freeze buff is on (rock1)
       else if (freeze) {
         character.velocity.x = 0;
       }
 
+      // normal state
       else {
         character.velocity.x = -3;
       }
 
-      // check the left edge
+      // check the left edge so that the character does not go off the screen
       if (character.position.x < 50) {
         character.velocity.x = 0;
       }
     }
 
+    // the character moves to the right
     else if (keyDown(RIGHT_ARROW)) {
+      // changes the direction
       character.mirrorX(1);
+
+      // if slowDown buff is on (collides with rock2)
       if (slowDown) {
         character.velocity.x = 1.5;
       }
 
+      // if speedUp buff is on (wool)
       else if (speedUp) {
         character.velocity.x = 4.5;
       }
 
+      // if freeze buff is on (rock1)
       else if (freeze) {
         character.velocity.x = 0;
       }
 
+      // normal state
       else {
         character.velocity.x = 3;
       }
 
-      // check the right edge
+      // check the right edge so that the character does not go off the screen
       if (character.position.x > width - 50) {
         character.velocity.x = 0;
       }
     }
 
-    else {
+    else {  // if no key is pressed, the character stays
       character.velocity.x = 0;
     }
 
-    character.position.y = height - charHeight[charIndex];
+    // fix the character's vertical position
+    // character.position.y = height - charHeight[charIndex];
+    character.position.y = height - chars[charIndex][1];
+
     drawSprites();
   }
 }
 
 function keyPressed() {
   if (keyCode === ENTER) {
-    if (!gameStart) {
+    // if the game has not started or the game is over
+    if (!gameStart || gameOver) {
+      // if the how to play guide page was displayed
       if (howTo) {
         howTo = false;
       }
 
-      if (!chooseMode && !chooseChar) {
-        chooseMode = true;
-      }
-    }
-
-    else if (gameOver) {
-      if (howTo) {
-        howTo = false;
-      }
-
+      // if the character has not chosen and the character page is not displayed
       if (!chooseMode && !chooseChar) {
         chooseMode = true;
       }
 
-      gameStart = false;
+      // if the game is over
+      if (gameOver) {
+        gameStart = false;  // set the gameStart to false to allow playing again
 
-      score = 0;
-      remainingTime = 60;
-      survivingTime = 0;
+        // set to their initial values
+        score = 0;
 
-      rate1 = 0.005;
-      rate2 = 0.007;
+        remainingTime = 60;
+        survivingTime = 0;
+        buffTime = 300;
 
-      // move the character to its initial position
-      character.position.x = width / 2;
+        rate1 = 0.005;
+        rate2 = 0.007;
+
+        charIndex = 6;
+
+        // move the character to its initial position
+        character.position.x = width / 2;
+      }
     }
   }
 
   if (keyCode === 77) { // "m" key
-    if (!gameStart || gameOver) {
-      howTo = true;
+    if (!gameStart || gameOver) { // if the game has not started or is over
+      howTo = true; // allows the player to display the how to guide
     }
   }
 }
 
-function timeDecrease() {
+function timeDecrease() { // the remainingTime to decrease each second
+  // if the game has started and there is a remaining time
   if (remainingTime > 0 && gameStart) {
-    remainingTime--;
+    remainingTime--;  // decrement the time
   }
 }
 
-function timeIncrease(currTime) {
-  if (gameStart && !gameOver) {
+function timeIncrease(currTime) { // time increases by 1 second
+  if (gameStart && !gameOver) { // if the game is playing
+    // increasing each second
     if (int((millis() - currTime) / 1000) != survivingTime) {
       survivingTime++;
     }
   }
 }
 
-function collect(collector, collected) {
+// http://molleindustria.github.io/p5.play/examples/index.html?fileName=collisions2.js
+// p5.play library example: "Collisions - group collisions and events functions"
+function collect(collector, collected) {  // collecting the objects falling from the sky
   collected.remove();
 }
 
-class TempScore {
-	constructor(scoreAmount, x) {
-		this.amount = scoreAmount;
-		this.position = createVector(x + 50, height - 200);
-		this.lifespan = 100;
-	}
+// creates items falling from the sky, except for the rocks
+function items() {
+  // ball
+  if (random(1) < 0.009) {
+    let newBall = createSprite(random(0, width), 20, 50, 50);
+    newBall.addImage(ball_img);
+    newBall.addToGroup(balls);
+  }
 
-	update() {
-		this.lifespan -= 2;
-	}
+  for (let i = 0; i < balls.length; i++) {
+    let aBall = balls[i];
 
-	display() {
-		if (!this.isDead() && gameStart) {
-			textFont(font, 24);
-			text(this.amount, this.position.x, this.position.y);
-		}
-	}
+    aBall.position.y += 2;
 
-	isDead() {
-		if (this.lifespan < 0) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+    if (aBall.position.y > height - 120) {
+      aBall.remove();
+    }
+  }
+
+  if (character.collide(balls)) {
+    character.overlap(balls, collect);
+    score += 30;
+    scores.push(new TempScore("+30", character.position.x));
+  }
+
+  // can
+  if (random(1) < 0.004) {
+    let newCan = createSprite(random(0, width), 20, 50, 48);
+    newCan.addImage(can_img);
+    newCan.addToGroup(cans);
+  }
+
+  for (let i = 0; i < cans.length; i++) {
+    let aCan = cans[i];
+    aCan.position.y += 6;
+    if (aCan.position.y > height - 120) {
+      aCan.remove();
+    }
+  }
+
+  if (character.collide(cans)) {
+    character.overlap(cans, collect);
+    score += 100;
+    scores.push(new TempScore("+100", character.position.x));
+  }
+
+  // wool
+  if (random(1) < 0.002) {
+    let newWool = createSprite(random(0, width), 20, 40, 38);
+    newWool.addImage(wool_img);
+    newWool.addToGroup(wools);
+  }
+
+  for (let i = 0; i < wools.length; i++) {
+    let aWool = wools[i];
+    aWool.position.y += 9;
+    if (aWool.position.y > height - 120) {
+      aWool.remove();
+    }
+  }
+
+  if (character.collide(wools)) {
+    character.overlap(wools, collect);
+    score += 200;
+    scores.push(new TempScore("+200", character.position.x));
+    speedUp = true;
+  }
+
+  // chicken
+  if (random(1) < 0.006) {
+    let newChicken = createSprite(random(0, width), 20, 70, 70);
+    newChicken.addImage(chicken_img);
+    newChicken.addToGroup(chickens);
+  }
+
+  for (let i = 0; i < chickens.length; i++) {
+    let aChicken = chickens[i];
+    aChicken.position.y += 4;
+    if (aChicken.position.y > height - 120) {
+      aChicken.remove();
+    }
+  }
+
+  if (character.collide(chickens)) {
+    character.overlap(chickens, collect);
+    score += 70;
+    scores.push(new TempScore("+70", character.position.x));
+  }
+
+  // fish
+  if (random(1) < 0.008) {
+    let newFish = createSprite(random(0, width), 20, 80, 40);
+    newFish.addImage(fish_img);
+    newFish.addToGroup(fish);
+  }
+
+  for (let i = 0; i < fish.length; i++) {
+    let aFish = fish[i];
+    aFish.position.y += 3;
+    if (aFish.position.y > height - 120) {
+      aFish.remove();
+    }
+  }
+
+  if (character.collide(fish)) {
+    let collidedTime = remainingTime;
+    character.overlap(fish, collect);
+    score += 50;
+    scores.push(new TempScore("+50", character.position.x));
+  }
+}
+
+// behavior of the rocks
+function rocks(gameMode) {
+  // rock1
+  // creates the rock1 randomly at a random position
+  if (random(1) < rate1) {
+    let newRock1 = createSprite(random(0, width), 20, 80, 59);
+
+    newRock1.addImage(rock1_img);
+    newRock1.addToGroup(rocks1);
+  }
+
+  // all the rock1s fall down
+  for (let i = 0; i < rocks1.length; i++) {
+    let aRock1 = rocks1[i];
+
+    aRock1.position.y += 7;
+
+    // if the rock1 sprite reaches the ground, it is removed
+    if (aRock1.position.y > height - 120) {
+      aRock1.remove();
+    }
+  }
+
+  // rock2
+  // creates the rock2 randomly at a random position
+  if (random(1) < rate2) {
+    let newRock2 = createSprite(random(0, width), 20, 60, 52);
+
+    newRock2.addImage(rock2_img);
+    newRock2.addToGroup(rocks2);
+  }
+
+  // all the rock2s fall down
+  for (let i = 0; i < rocks2.length; i++) {
+    let aRock2 = rocks2[i];
+
+    aRock2.position.y += 4;
+
+    // if the rock2 sprite reaches the ground, it is removed
+    if (aRock2.position.y > height - 120) {
+      aRock2.remove();
+    }
+  }
+
+  // if the character collides with rock1
+  if (character.collide(rocks1)) {
+    character.overlap(rocks1, collect);
+
+    if (gameMode === 1) {
+      // loses 200 points and displays it
+      score -= 200;
+      scores.push(new TempScore("-200", character.position.x));
+
+      // the character freezes
+      freeze = true;
+    }
+
+    // game modes 2 and 3
+    // game is over when collides with rocks
+    else {
+      gameOver = true;
+      allSprites.removeSprites();
+      buffTime = 0; // to remove the buff text on the right
+    }
+  }
+
+  // if the character collides with rock2
+  if (character.collide(rocks2)) {
+    character.overlap(rocks2, collect);
+
+    if (gameMode === 1) {
+      // loses 100 points and displays it
+      score -= 100;
+      scores.push(new TempScore("-100", character.position.x));
+
+      // the character slows down
+      slowDown = true;
+    }
+
+    // game modes 2 and 3
+    // game is over when collides with rocks
+    else {
+      gameOver = true;
+      allSprites.removeSprites();
+      buffTime = 0; // to remove the buff text on the right
+    }
+  }
+}
+
+// if the user chose a game mode
+// move to the screen to choose game character
+function modeChosen() {
+  chooseMode = false;
+  chooseChar = true;
+}
+
+// create a sprite for the game character after the user chooses one
+function displayChar(charIndex) {
+  character = createSprite(width / 2, height - chars[charIndex][1], 100, 213);
+  character.addImage(chars[charIndex][0]);
+
+  chooseChar = false;
+  gameStart = true;
+  gameOver = false;
+
+  currTime = millis();
 }
