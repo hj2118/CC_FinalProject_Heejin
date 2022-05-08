@@ -29,10 +29,8 @@ let score = 0;
 let scores = [];
 let remainingTime = 60;
 let survivingTime = 0;
-let moreRockTime;
 
 let buffTime = 300;
-let rockTime = 100;
 let slowDown = false;
 let speedUp = false;
 let freeze = false;
@@ -85,7 +83,6 @@ function setup() {
 
   // https://editor.p5js.org/denaplesk2/sketches/ryIBFP_lG
   setInterval(timeDecrease, 1000);
-  setInterval(rockTimeDec, 1000);
 
   balls = new Group();
   cans = new Group();
@@ -161,13 +158,11 @@ function draw() {
     }
     else if (keyWentDown('2')) {
       gameMode = 2;
-      moreRockTime = 20;
       chooseMode = false;
       chooseChar = true;
     }
     else if (keyWentDown('3')) {
       gameMode = 3;
-      moreRockTime = 15;
       chooseMode = false;
       chooseChar = true;
     }
@@ -416,7 +411,7 @@ function draw() {
         text("Time: " + survivingTime, 20, 40);
       }
 
-      text("Until More Rocks: " + moreRockTime, 20, 80);
+      text("Until More Rocks: " + (15 - (survivingTime % 15)), 20, 80);
 
       timeIncrease(currTime);
 
@@ -429,7 +424,6 @@ function draw() {
           text("MORE", width - 138, (height - 200) / 2 - 25);
           text("ROCKS!", width - 150, (height - 200) / 2 + 25);
 
-          moreRockTime = 20;
         }
       }
 
@@ -440,8 +434,6 @@ function draw() {
 
           text("MORE", width - 138, (height - 200) / 2 - 25);
           text("ROCKS!", width - 150, (height - 200) / 2 + 25);
-
-          moreRockTime = 15;
         }
       }
 
@@ -710,12 +702,6 @@ function keyPressed() {
 function timeDecrease() {
   if (remainingTime > 0 && gameStart) {
     remainingTime--;
-  }
-}
-
-function rockTimeDec() {
-  if (gameStart) {
-    moreRockTime--;
   }
 }
 
