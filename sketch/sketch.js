@@ -31,11 +31,11 @@ let remainingTime = 60;
 let survivingTime = 0;
 let moreRockTime;
 
-let spellTime = 300;
+let buffTime = 300;
 let rockTime = 100;
 let slowDown = false;
+let speedUp = false;
 let freeze = false;
-let moreRock = false;
 
 let rate1 = 0.005;
 let rate2 = 0.007;
@@ -268,12 +268,10 @@ function draw() {
     textAlign(CENTER);
     // START GAME
     textFont(font, 32);
-    // text(startGame, width / 2 - 330, 200);
     text(startGameText, width / 2, (height - 200) / 2);
 
     // use arrow keys...
     textFont(font, 24);
-    // text(howTo, width / 2 - 370, 250);
     text(howToText, width / 2, (height - 200) / 2 + 50);
   }
 
@@ -326,10 +324,10 @@ function draw() {
       text("DOWN!", width - 150, (height - 200) / 2 + 25);
     }
 
-    // if (moreRock) {
-    //   text("MORE", width - 130, (height - 200) / 2 - 25);
-    //   text("ROCK!", width - 150, (height - 200) / 2 + 25);
-    // }
+    if (speedUp) {
+      text("SPEED", width - 148, (height - 200) / 2 - 25);
+      text("UP!", width - 150, (height - 200) / 2 + 25);
+    }
 
     if (gameMode === 1) {  // high score
       textAlign(LEFT);
@@ -357,19 +355,21 @@ function draw() {
         score -= 200;
         scores.push(new TempScore("-200", character.position.x));
         freeze = true;
-        // text("-200", character.position.x + 50, height - 200);
       }
 
       // rock2
       if (random(1) < 0.007) {
         let newRock2 = createSprite(random(0, width), 20, 60, 52);
+
         newRock2.addImage(rock2_img);
         newRock2.addToGroup(rocks2);
       }
 
       for (let i = 0; i < rocks2.length; i++) {
         let aRock2 = rocks2[i];
+
         aRock2.position.y += 4;
+
         if (aRock2.position.y > height - 120) {
           aRock2.remove();
         }
@@ -380,32 +380,23 @@ function draw() {
         score -= 100;
         scores.push(new TempScore("-100", character.position.x));
         slowDown = true;
-        // text("-100", character.position.x + 50, height - 200);
       }
 
       if (slowDown) {
-        spellTime -= 2;
-        if (spellTime < 0) {
+        buffTime -= 2;
+        if (buffTime < 0) {
           slowDown = false;
-          spellTime = 300;
+          buffTime = 300;
         }
       }
 
       if (freeze) {
-        spellTime -= 2;
-        if (spellTime < 0) {
+        buffTime -= 2;
+        if (buffTime < 0) {
           freeze = false;
-          spellTime = 300;
+          buffTime = 300;
         }
       }
-
-      // if (moreRock) {
-      //   rockTime -= 2;
-      //   if (rockTime < 0) {
-      //     moreRock = false;
-      //     rockTime = 200;
-      //   }
-      // }
 
       if (remainingTime == 0) {
         gameOver = true;
@@ -432,10 +423,8 @@ function draw() {
       // rock1
       if (gameMode === 2) {
         if ((survivingTime > 0) && (survivingTime % 20 === 0)) {
-        // if (moreRockTime === 0) {
           rate1 += 0.00005;
           rate2 += 0.00005;
-          // moreRock = true;
 
           text("MORE", width - 138, (height - 200) / 2 - 25);
           text("ROCKS!", width - 150, (height - 200) / 2 + 25);
@@ -446,10 +435,8 @@ function draw() {
 
       else {
         if ((survivingTime > 0) && (survivingTime % 15 === 0)) {
-        // if (moreRockTime === 0) {
           rate1 += 0.0002;
           rate2 += 0.0002;
-          // moreRock = true;
 
           text("MORE", width - 138, (height - 200) / 2 - 25);
           text("ROCKS!", width - 150, (height - 200) / 2 + 25);
@@ -523,7 +510,6 @@ function draw() {
         character.overlap(balls, collect);
         score += 30;
         scores.push(new TempScore("+30", character.position.x));
-        // text("+30", character.position.x + 50, height - 200);
       }
 
       // can
@@ -545,7 +531,6 @@ function draw() {
         character.overlap(cans, collect);
         score += 100;
         scores.push(new TempScore("+100", character.position.x));
-        // text("+100", character.position.x + 50, height - 200);
       }
 
       // wool
@@ -567,7 +552,15 @@ function draw() {
         character.overlap(wools, collect);
         score += 200;
         scores.push(new TempScore("+200", character.position.x));
-        // text("+200", character.position.x + 50, height - 200);
+        speedUp = true;
+      }
+
+      if (speedUp) {
+        buffTime -= 2;
+        if (buffTime < 0) {
+          speedUp = false;
+          buffTime = 300;
+        }
       }
 
       // chicken
@@ -589,7 +582,6 @@ function draw() {
         character.overlap(chickens, collect);
         score += 70;
         scores.push(new TempScore("+70", character.position.x));
-        // text("+70", character.position.x + 50, height - 200);
       }
 
       // fish
@@ -622,6 +614,10 @@ function draw() {
         character.velocity.x = -1.5;
       }
 
+      else if (speedUp) {
+        character.velocity.x = - 4.5;
+      }
+
       else if (freeze) {
         character.velocity.x = 0;
       }
@@ -640,6 +636,10 @@ function draw() {
       character.mirrorX(1);
       if (slowDown) {
         character.velocity.x = 1.5;
+      }
+
+      else if (speedUp) {
+        character.velocity.x = 4.5;
       }
 
       else if (freeze) {
@@ -715,7 +715,6 @@ function timeDecrease() {
 
 function rockTimeDec() {
   if (gameStart) {
-  // if (gameStart && !moreRock) {
     moreRockTime--;
   }
 }
