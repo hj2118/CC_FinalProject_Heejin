@@ -21,6 +21,7 @@ class TempScore {
 		// if not dead
 		if (!this.dead) {
 			// display the temporary score
+			fill(139, 69, 19, this.lifeTime * 3);
 			textFont(font, 24);
 			text(this.amount, this.position.x, this.position.y);
 		}

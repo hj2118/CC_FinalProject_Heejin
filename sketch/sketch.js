@@ -1,3 +1,5 @@
+// not pushed!!
+
 // falling objects
 
 // game character
@@ -256,6 +258,8 @@ function draw() {
 
     // printing out the results: score or survived time
     textFont(font, 32);
+
+    fill(139, 69, 19);
     if ((gameMode === 1) || (gameMode === 2)) {
       text("Score: " + score, width / 2, (height - 200) / 2 + 25);
       remainingTime = 60;
@@ -297,6 +301,7 @@ function draw() {
     textAlign(CENTER);
     textFont(font, 32);
 
+    fill(139, 69, 19, buffTime);
     if (freeze) {
       text("FREEZE!", width - 150, height / 2);
     }
@@ -321,6 +326,7 @@ function draw() {
       // displaying the remaining time and the current score
       textAlign(LEFT);
       textFont(font, 24);
+      fill(139, 69, 19);
       text("Time: " + remainingTime, 20, 40);
       text("Score: " + score, 20, 80);
 
@@ -359,6 +365,7 @@ function draw() {
       // displaying the score or time played at the top left corner
       textAlign(LEFT);
       textFont(font, 24);
+      fill(139, 69, 19);
 
       if (gameMode === 2) {
         text("Score: " + score, 20, 40);
@@ -381,6 +388,7 @@ function draw() {
         rate1 += 0.0002;
         rate2 += 0.0002;
 
+        fill(139, 69, 19);
         text("MORE", width - 138, (height - 200) / 2 - 25);
         text("ROCKS!", width - 150, (height - 200) / 2 + 25);
       }
