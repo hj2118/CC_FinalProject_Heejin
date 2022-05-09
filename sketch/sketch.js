@@ -24,6 +24,8 @@ let gameOver = false;
 let howTo = false;
 let chooseMode = false;
 let chooseChar = false;
+let ready = false;
+let start = false;
 
 // a variable to store the mode of game
 let gameMode = 0;
@@ -35,6 +37,8 @@ let scores = [];
 // times
 let remainingTime = 60;
 let survivingTime = 0;
+let readyTime = 3;
+let startTime = 100;
 let buffTime = 300;
 
 // buffs
@@ -89,6 +93,7 @@ function setup() {
   // https://editor.p5js.org/denaplesk2/sketches/ryIBFP_lG
   // time decreases in every second
   setInterval(timeDecrease, 1000);
+  setInterval(readyTimeDec, 1000);
 
   // initializes the groups to store falling items created
   balls = new Group();
@@ -231,6 +236,7 @@ function draw() {
     // if the character is chosen, create the character sprite by calling displayChar() function
     if (charIndex != 6) {
       displayChar(charIndex);
+      ready = true;
     }
   }
 
@@ -314,171 +320,206 @@ function draw() {
       text("UP!", width - 150, (height - 200) / 2 + 25);
     }
 
-    // if the first game mode was selected
-    // gaining a high score in 60 seconds
-    // if collides with:
-      // rock1: freeze
-      // rock2: slow down
-      // wool: speed up
-    if (gameMode === 1) {  // high score
-      // displaying the remaining time and the current score
-      textAlign(LEFT);
-      textFont(font, 24);
+    // 3 seconds until the game starts to get ready
+    if (ready) {
+      // displays countdown
+      textAlign(CENTER);
+      textFont(font, 64);
       fill(139, 69, 19);
-      text("Time: " + remainingTime, 20, 40);
-      text("Score: " + score, 20, 80);
+      text(readyTime, width / 2, (height - 100) / 2);
 
-      rocks(gameMode);
-
-      // buffs
-      // slowDown buff
-      if (slowDown) {
-        buffTime -= 2;
-        if (buffTime < 0) {
-          slowDown = false;
-          buffTime = 300;
-        }
-      }
-
-      // freeze buff
-      if (freeze) {
-        buffTime -= 2;
-        if (buffTime < 0) {
-          freeze = false;
-          buffTime = 300;
-        }
-      }
-
-      // if there is no time remaining, the game is over
-      if (remainingTime == 0) {
-        gameOver = true;
-        allSprites.removeSprites(); // every sprite on the screen is removed
-        buffTime = 0; // to remove the buff text on the right
+      // if 3 seconds passed
+      if (readyTime === 0) {
+        start = true;
+        ready = false;
       }
     }
 
-    // if second or third game mode
-    // the rates of rocks falling increase every 15 seconds
-    else if ((gameMode === 2) || (gameMode === 3)) {
-      // displaying the score or time played at the top left corner
-      textAlign(LEFT);
-      textFont(font, 24);
+    // display the START! after 3 seconds (ready)
+    else if (start) {
+      startTime -= 2;
+
+      if (startTime < 0) {
+        start = false;
+        ready = false;
+        startTime = 100;
+        readyTime = 3;
+      }
+
+      textAlign(CENTER);
+      textFont(font, 64);
       fill(139, 69, 19);
+      text("START!", width / 2, (height - 100) / 2);
+    }
 
-      if (gameMode === 2) {
-        text("Score: " + score, 20, 40);
-      }
-
-      else if (gameMode === 3) {
-        text("Time: " + survivingTime, 20, 40);
-      }
-
-      // displaying the time left until more rocks to fall
-      text("Until More Rocks: " + (15 - (survivingTime % 15)), 20, 80);
-
-      // increasing the survivingTime eac second
-      // currTime is in milliseconds
-      timeIncrease(currTime);
-
-      // increasing the rates of rocks falling every 15 seconds
-      // displaying the text "MORE ROCKS!" to notify it
-      if ((survivingTime > 0) && (survivingTime % 15 === 0)) {
-        rate1 += 0.0002;
-        rate2 += 0.0002;
-
+    // after the 3 seconds of getting ready, finally the game begins
+    else {
+      // if the first game mode was selected
+      // gaining a high score in 60 seconds
+      // if collides with:
+        // rock1: freeze
+        // rock2: slow down
+        // wool: speed up
+      if (gameMode === 1) {  // high score
+        // displaying the remaining time and the current score
+        textAlign(LEFT);
+        textFont(font, 24);
         fill(139, 69, 19);
-        text("MORE", width - 138, (height - 200) / 2 - 25);
-        text("ROCKS!", width - 150, (height - 200) / 2 + 25);
-      }
+        text("Time: " + remainingTime, 20, 40);
+        text("Score: " + score, 20, 80);
 
-      rocks(gameMode);
-    }
+        rocks(gameMode);
 
-    // if first or second game mode
-    // items for points fall
-    if (gameMode != 3) {
-      items();
+        // buffs
+        // slowDown buff
+        if (slowDown) {
+          buffTime -= 2;
+          if (buffTime < 0) {
+            slowDown = false;
+            buffTime = 300;
+          }
+        }
 
-      // speedUp buff is on
-      if (speedUp) {
-        buffTime -= 2;
-        if (buffTime < 0) {
-          speedUp = false;
-          buffTime = 300;
+        // freeze buff
+        if (freeze) {
+          buffTime -= 2;
+          if (buffTime < 0) {
+            freeze = false;
+            buffTime = 300;
+          }
+        }
+
+        // if there is no time remaining, the game is over
+        if (remainingTime == 0) {
+          gameOver = true;
+          allSprites.removeSprites(); // every sprite on the screen is removed
+          buffTime = 0; // to remove the buff text on the right
         }
       }
-    }
 
-    // game character
-    // the character moves to the left
-    if (keyDown(LEFT_ARROW)) {
-      // changes the direction of the image
-      character.mirrorX(-1);
+      // if second or third game mode
+      // the rates of rocks falling increase every 15 seconds
+      else if ((gameMode === 2) || (gameMode === 3)) {
+        // displaying the score or time played at the top left corner
+        textAlign(LEFT);
+        textFont(font, 24);
+        fill(139, 69, 19);
 
-      // if slowDown buff is on (collides with rock2)
-      if (slowDown) {
-        character.velocity.x = -1.5;
+        if (gameMode === 2) {
+          text("Score: " + score, 20, 40);
+        }
+
+        else if (gameMode === 3) {
+          text("Time: " + survivingTime, 20, 40);
+        }
+
+        // displaying the time left until more rocks to fall
+        text("Until More Rocks: " + (15 - (survivingTime % 15)), 20, 80);
+
+        // increasing the survivingTime eac second
+        // currTime is in milliseconds
+        timeIncrease(currTime);
+
+        // increasing the rates of rocks falling every 15 seconds
+        // displaying the text "MORE ROCKS!" to notify it
+        if ((survivingTime > 0) && (survivingTime % 15 === 0)) {
+          rate1 += 0.0002;
+          rate2 += 0.0002;
+
+          fill(139, 69, 19);
+          text("MORE", width - 138, (height - 200) / 2 - 25);
+          text("ROCKS!", width - 150, (height - 200) / 2 + 25);
+        }
+
+        rocks(gameMode);
       }
 
-      // if speedUp buff is on (wool)
-      else if (speedUp) {
-        character.velocity.x = - 4.5;
+      // if first or second game mode
+      // items for points fall
+      if (gameMode != 3) {
+        items();
+
+        // speedUp buff is on
+        if (speedUp) {
+          buffTime -= 2;
+          if (buffTime < 0) {
+            speedUp = false;
+            buffTime = 300;
+          }
+        }
       }
 
-      // if freeze buff is on (rock1)
-      else if (freeze) {
+      // game character
+      // the character moves to the left
+      if (keyDown(LEFT_ARROW)) {
+        // changes the direction of the image
+        character.mirrorX(-1);
+
+        // if slowDown buff is on (collides with rock2)
+        if (slowDown) {
+          character.velocity.x = -1.5;
+        }
+
+        // if speedUp buff is on (wool)
+        else if (speedUp) {
+          character.velocity.x = - 4.5;
+        }
+
+        // if freeze buff is on (rock1)
+        else if (freeze) {
+          character.velocity.x = 0;
+        }
+
+        // normal state
+        else {
+          character.velocity.x = -3;
+        }
+
+        // check the left edge so that the character does not go off the screen
+        if (character.position.x < 50) {
+          character.velocity.x = 0;
+        }
+      }
+
+      // the character moves to the right
+      else if (keyDown(RIGHT_ARROW)) {
+        // changes the direction
+        character.mirrorX(1);
+
+        // if slowDown buff is on (collides with rock2)
+        if (slowDown) {
+          character.velocity.x = 1.5;
+        }
+
+        // if speedUp buff is on (wool)
+        else if (speedUp) {
+          character.velocity.x = 4.5;
+        }
+
+        // if freeze buff is on (rock1)
+        else if (freeze) {
+          character.velocity.x = 0;
+        }
+
+        // normal state
+        else {
+          character.velocity.x = 3;
+        }
+
+        // check the right edge so that the character does not go off the screen
+        if (character.position.x > width - 50) {
+          character.velocity.x = 0;
+        }
+      }
+
+      else {  // if no key is pressed, the character stays
         character.velocity.x = 0;
       }
 
-      // normal state
-      else {
-        character.velocity.x = -3;
-      }
-
-      // check the left edge so that the character does not go off the screen
-      if (character.position.x < 50) {
-        character.velocity.x = 0;
-      }
+      // fix the character's vertical position
+      // character.position.y = height - charHeight[charIndex];
+      character.position.y = height - chars[charIndex][1];
     }
-
-    // the character moves to the right
-    else if (keyDown(RIGHT_ARROW)) {
-      // changes the direction
-      character.mirrorX(1);
-
-      // if slowDown buff is on (collides with rock2)
-      if (slowDown) {
-        character.velocity.x = 1.5;
-      }
-
-      // if speedUp buff is on (wool)
-      else if (speedUp) {
-        character.velocity.x = 4.5;
-      }
-
-      // if freeze buff is on (rock1)
-      else if (freeze) {
-        character.velocity.x = 0;
-      }
-
-      // normal state
-      else {
-        character.velocity.x = 3;
-      }
-
-      // check the right edge so that the character does not go off the screen
-      if (character.position.x > width - 50) {
-        character.velocity.x = 0;
-      }
-    }
-
-    else {  // if no key is pressed, the character stays
-      character.velocity.x = 0;
-    }
-
-    // fix the character's vertical position
-    // character.position.y = height - charHeight[charIndex];
-    character.position.y = height - chars[charIndex][1];
 
     drawSprites();
   }
@@ -531,6 +572,12 @@ function timeDecrease() { // the remainingTime to decrease each second
   // if the game has started and there is a remaining time
   if (remainingTime > 0 && gameStart) {
     remainingTime--;  // decrement the time
+  }
+}
+
+function readyTimeDec() {
+  if (readyTime > 0 && ready) {
+    readyTime--;
   }
 }
 
