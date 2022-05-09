@@ -1,5 +1,3 @@
-// not pushed!!
-
 // falling objects
 
 // game character
