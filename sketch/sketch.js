@@ -26,6 +26,7 @@ let chooseMode = false;
 let chooseChar = false;
 let ready = false;
 let start = false;
+let first = true;
 
 // a variable to store the mode of game
 let gameMode = 0;
@@ -122,16 +123,25 @@ function draw() {
   if (howTo) {
     textAlign(CENTER);
     textFont(font, 32);
-    text(startGameText, width / 2, (height - 200) / 2 - 190);
-    textFont(font, 24);
 
-    text("Use arrow keys to move your character", width / 2, (height - 200) / 2 - 120);
-    text("Try to gain higher points!", width / 2, (height - 200) / 2 - 70);
+    if (first) {  // if it is a first game, where the data from the previous game does not exist
+      text(startGameText, width / 2, (height - 200) / 2 - 170);
+      textFont(font, 24);
+      text("Use arrow keys to move your character", width / 2, (height - 200) / 2 - 90);
+    }
 
-    text("Points:", width / 2 - 247, (height - 200) / 2);
+    else {
+      text(startGameText, width / 2, (height - 200) / 2 - 190);
+      text("Press N key to choose again", width / 2, (height - 200) / 2 - 140);
+
+      textFont(font, 24);
+      text("Use arrow keys to move your character", width / 2, (height - 200) / 2 - 70);
+    }
+
+    textAlign(LEFT);
+    text("Points / Buffs:", width / 2 - 350, (height - 200) / 2);
 
     // images of the items and their points
-    textAlign(LEFT);
     image(ball_img, width / 2 - 240, (height - 200) / 2 + 30);
     text(": 30", width / 2 - 150, (height - 200) / 2 + 58)
 
@@ -144,14 +154,14 @@ function draw() {
     image(can_img, width / 2 - 238, (height - 200) / 2 + 250);
     text(": 100", width / 2 - 150, (height - 200) / 2 + 283);
 
-    image(wool_img, width / 2 + 120, (height - 200) / 2 + 70);
-    text(": 200", width / 2 + 200, (height - 200) / 2 + 93)
+    image(wool_img, width / 2 + 70, (height - 200) / 2 + 70);
+    text(": 200, SPEED UP", width / 2 + 150, (height - 200) / 2 + 93)
 
-    image(rock1_img, width / 2 + 95, (height - 200) / 2 + 130);
-    text(": -200", width / 2 + 200, (height - 200) / 2 + 168);
+    image(rock1_img, width / 2 + 45, (height - 200) / 2 + 130);
+    text(": -200, FREEZE", width / 2 + 150, (height - 200) / 2 + 168);
 
-    image(rock2_img, width / 2 + 110, (height - 200) / 2 + 205);
-    text(": -100", width / 2 + 200, (height - 200) / 2 + 238);
+    image(rock2_img, width / 2 + 60, (height - 200) / 2 + 205);
+    text(": -100, SLOW DOWN", width / 2 + 150, (height - 200) / 2 + 238);
   }
 
   // choosing mode screen is displayed
@@ -234,9 +244,12 @@ function draw() {
     }
 
     // if the character is chosen, create the character sprite by calling displayChar() function
+    // also initializes variables needed
     if (charIndex != 6) {
       displayChar(charIndex);
       ready = true;
+
+      initialize();
     }
   }
 
@@ -259,11 +272,12 @@ function draw() {
     textFont(font, 24);
     text(playAgainText, width / 2, (height - 200) / 2 + 100);
     text(howToText, width / 2, (height - 200) / 2 + 150);
+    text("Press N key to choose again", width / 2, (height - 200) / 2 + 200);
 
     // printing out the results: score or survived time
     textFont(font, 32);
-
     fill(139, 69, 19);
+
     if ((gameMode === 1) || (gameMode === 2)) {
       text("Score: " + score, width / 2, (height - 200) / 2 + 25);
       remainingTime = 60;
@@ -354,7 +368,9 @@ function draw() {
 
     // after the 3 seconds of getting ready, finally the game begins
     else {
-      // if the first game mode was selected
+      first = false;  // stores if it is the first game
+
+      // if game mode 1 was selected
       // gaining a high score in 60 seconds
       // if collides with:
         // rock1: freeze
@@ -442,6 +458,7 @@ function draw() {
         // speedUp buff is on
         if (speedUp) {
           buffTime -= 2;
+
           if (buffTime < 0) {
             speedUp = false;
             buffTime = 300;
@@ -528,36 +545,43 @@ function draw() {
 function keyPressed() {
   if (keyCode === ENTER) {
     // if the game has not started or the game is over
-    if (!gameStart || gameOver) {
+    if (!gameStart && !gameOver) {
       // if the how to play guide page was displayed
-      if (howTo) {
+      if (howTo && first) {
         howTo = false;
       }
 
       // if the character has not chosen and the character page is not displayed
+      // else if (!chooseMode && !chooseChar) {
       if (!chooseMode && !chooseChar) {
         chooseMode = true;
+        gameOver = false;
+      }
+    }
+
+    // if the game is over or the how to guide is displayed and it is not the first game
+    // if it is not the first game, there are the charIndex and gameMode values from the previous game
+    if (gameOver || (howTo && !first)) {
+      if (howTo) {  // if the how to guide is displayed
+        howTo = false;  // close it
       }
 
-      // if the game is over
-      if (gameOver) {
-        gameStart = false;  // set the gameStart to false to allow playing again
+      gameStart = true;  // set the gameStart to false to allow playing again
+      gameOver = false;
 
-        // set to their initial values
-        score = 0;
+      // set to their initial values
+      initialize();
 
-        remainingTime = 60;
-        survivingTime = 0;
-        buffTime = 300;
+      // not choosing character and mode again
+      chooseChar = false;
+      chooseMode = false;
 
-        rate1 = 0.005;
-        rate2 = 0.007;
+      displayChar(charIndex);
 
-        charIndex = 6;
+      ready = true;
 
-        // move the character to its initial position
-        character.position.x = width / 2;
-      }
+      // move the character to its initial position
+      character.position.x = width / 2;
     }
   }
 
@@ -566,11 +590,23 @@ function keyPressed() {
       howTo = true; // allows the player to display the how to guide
     }
   }
+
+  // choosing the character and the mode again
+  if (keyCode === 78) { // "n" key
+    if (gameOver || howTo) {  // if the game is over or the how to guide is opened
+      howTo = false;
+      gameOver = false;
+      gameStart = false;
+      charIndex = 6;
+      gameMode = 0;
+      chooseMode = true;
+    }
+  }
 }
 
 function timeDecrease() { // the remainingTime to decrease each second
   // if the game has started and there is a remaining time
-  if (remainingTime > 0 && gameStart) {
+  if (remainingTime > 0 && gameStart && !ready && !start) {
     remainingTime--;  // decrement the time
   }
 }
@@ -582,9 +618,9 @@ function readyTimeDec() {
 }
 
 function timeIncrease(currTime) { // time increases by 1 second
-  if (gameStart && !gameOver) { // if the game is playing
+  if (gameStart && !gameOver && !ready && !start) { // if the game is playing
     // increasing each second
-    if (int((millis() - currTime) / 1000) != survivingTime) {
+    if (int((millis() - currTime) / 1000) - 3 != survivingTime) {
       survivingTime++;
     }
   }
@@ -814,4 +850,16 @@ function displayChar(charIndex) {
   gameOver = false;
 
   currTime = millis();
+}
+
+// initializes the values
+function initialize() {
+  score = 0;
+
+  remainingTime = 60;
+  survivingTime = 0;
+  buffTime = 300;
+
+  rate1 = 0.005;
+  rate2 = 0.007;
 }
