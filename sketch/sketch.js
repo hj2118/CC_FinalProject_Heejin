@@ -1,5 +1,7 @@
 // falling objects
 
+// all sound effects are from freesound.org
+
 // game character
 let character;
 let charIndex = 6;  // initializes to 6 if the character is not chosen, since there are 6 characters available
@@ -51,6 +53,10 @@ let freeze = false;
 let rate1 = 0.005;
 let rate2 = 0.007;
 
+// sounds
+let wool_sound, rock_sound, otherItem_sound, start_sound, gameOver_sound, select_sound;
+
+
 // preloads the font and images
 function preload() {
   font = loadFont('data/font0.otf');
@@ -79,6 +85,13 @@ function preload() {
   cry6_img = loadImage('data/cry6.png');
 
   cup_img = loadImage('data/cup.png');
+
+  wool_sound = loadSound('data/592346__axilirate__collect-crystal.wav');
+  rock_sound = loadSound('data/524312__bertsz__rock-destroy.wav');
+  otherItem_sound = loadSound('data/135936__bradwesson__collectcoin.wav');
+  start_sound = loadSound('data/243020__plasterbrain__game-start.ogg');
+  gameOver_sound = loadSound('data/266163__plasterbrain__pacman-is-dead.wav');
+  select_sound = loadSound('data/608432__plasterbrain__pokemon-ui-select-enter.flac');
 }
 
 function setup() {
@@ -246,6 +259,7 @@ function draw() {
     // if the character is chosen, create the character sprite by calling displayChar() function
     // also initializes variables needed
     if (charIndex != 6) {
+      select_sound.play();
       displayChar(charIndex);
       ready = true;
 
@@ -346,6 +360,8 @@ function draw() {
       if (readyTime === 0) {
         start = true;
         ready = false;
+        
+        start_sound.play();
       }
     }
 
@@ -408,7 +424,11 @@ function draw() {
         // if there is no time remaining, the game is over
         if (remainingTime == 0) {
           gameOver = true;
+
+          gameOver_sound.play();
+
           allSprites.removeSprites(); // every sprite on the screen is removed
+
           buffTime = 0; // to remove the buff text on the right
         }
       }
@@ -656,6 +676,9 @@ function items() {
 
   if (character.collide(balls)) {
     character.overlap(balls, collect);
+
+    otherItem_sound.play();
+
     score += 30;
     scores.push(new TempScore("+30", character.position.x));
   }
@@ -677,6 +700,9 @@ function items() {
 
   if (character.collide(cans)) {
     character.overlap(cans, collect);
+
+    otherItem_sound.play();
+
     score += 100;
     scores.push(new TempScore("+100", character.position.x));
   }
@@ -698,8 +724,12 @@ function items() {
 
   if (character.collide(wools)) {
     character.overlap(wools, collect);
+
+    wool_sound.play();
+
     score += 200;
     scores.push(new TempScore("+200", character.position.x));
+
     speedUp = true;
   }
 
@@ -720,6 +750,9 @@ function items() {
 
   if (character.collide(chickens)) {
     character.overlap(chickens, collect);
+
+    otherItem_sound.play();
+
     score += 70;
     scores.push(new TempScore("+70", character.position.x));
   }
@@ -742,6 +775,9 @@ function items() {
   if (character.collide(fish)) {
     let collidedTime = remainingTime;
     character.overlap(fish, collect);
+
+    otherItem_sound.play();
+
     score += 50;
     scores.push(new TempScore("+50", character.position.x));
   }
@@ -795,6 +831,8 @@ function rocks(gameMode) {
   if (character.collide(rocks1)) {
     character.overlap(rocks1, collect);
 
+    rock_sound.play();
+
     if (gameMode === 1) {
       // loses 200 points and displays it
       score -= 200;
@@ -807,6 +845,8 @@ function rocks(gameMode) {
     // game modes 2 and 3
     // game is over when collides with rocks
     else {
+      gameOver_sound.play();
+
       gameOver = true;
       allSprites.removeSprites();
       buffTime = 0; // to remove the buff text on the right
@@ -816,6 +856,8 @@ function rocks(gameMode) {
   // if the character collides with rock2
   if (character.collide(rocks2)) {
     character.overlap(rocks2, collect);
+
+    rock_sound.play();
 
     if (gameMode === 1) {
       // loses 100 points and displays it
@@ -830,6 +872,9 @@ function rocks(gameMode) {
     // game is over when collides with rocks
     else {
       gameOver = true;
+
+      gameOver_sound.play();
+
       allSprites.removeSprites();
       buffTime = 0; // to remove the buff text on the right
     }
@@ -839,6 +884,7 @@ function rocks(gameMode) {
 // if the user chose a game mode
 // move to the screen to choose game character
 function modeChosen() {
+  select_sound.play();
   chooseMode = false;
   chooseChar = true;
 }
