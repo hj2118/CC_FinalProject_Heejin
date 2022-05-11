@@ -43,11 +43,14 @@ let survivingTime = 0;
 let readyTime = 3;
 let startTime = 100;
 let buffTime = 300;
+let invincibleTime = 500;
+let currTime;
 
 // buffs
 let slowDown = false;
 let speedUp = false;
 let freeze = false;
+let invincible = false;
 
 // rates of rocks falling
 let rate1 = 0.005;
@@ -95,7 +98,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth - 20, windowHeight);
+  createCanvas(windowWidth - 20, windowHeight - 20);
   background(255);
 
   startGameText = "Press ENTER to start game";
@@ -332,8 +335,8 @@ function draw() {
     // notifies any buff in effect on the right side of the screen
     textAlign(CENTER);
     textFont(font, 32);
-
     fill(139, 69, 19, buffTime);
+
     if (freeze) {
       text("FREEZE!", width - 150, (height - 200) / 2 + 50);
     }
@@ -348,6 +351,14 @@ function draw() {
       text("UP!", width - 150, (height - 200) / 2 + 75);
     }
 
+    if (invincible) {
+      text("INVINCIBLE", width - 150, (height - 200) / 2 + 50);
+
+      noStroke();
+      fill(127, 50);
+      rect(0, 0, width, height);
+    }
+
     // 3 seconds until the game starts to get ready
     if (ready) {
       // displays countdown
@@ -360,7 +371,7 @@ function draw() {
       if (readyTime === 0) {
         start = true;
         ready = false;
-        
+
         start_sound.play();
       }
     }
@@ -380,6 +391,8 @@ function draw() {
       textFont(font, 64);
       fill(139, 69, 19);
       text("START!", width / 2, (height - 100) / 2);
+      currTime = millis();
+
     }
 
     // after the 3 seconds of getting ready, finally the game begins
@@ -400,12 +413,27 @@ function draw() {
         text("Time: " + remainingTime, 20, 40);
         text("Score: " + score, 20, 80);
 
+        // rocks falling randomly
         rocks(gameMode);
+
+        // more rocks falling
+        if ((remainingTime === 20) || (remainingTime === 40)) {
+          moreRock(gameMode);
+        }
+
+        // displaying the time left until more rocks to fall
+        textAlign(RIGHT);
+        text("Until More Rocks: " + (20 - (60 - remainingTime) % 15), width - 20, 40);
+
+        if ((remainingTime === 30)) {
+          invincible = true;
+        }
 
         // buffs
         // slowDown buff
         if (slowDown) {
           buffTime -= 2;
+
           if (buffTime < 0) {
             slowDown = false;
             buffTime = 300;
@@ -415,6 +443,7 @@ function draw() {
         // freeze buff
         if (freeze) {
           buffTime -= 2;
+
           if (buffTime < 0) {
             freeze = false;
             buffTime = 300;
@@ -450,7 +479,8 @@ function draw() {
         }
 
         // displaying the time left until more rocks to fall
-        text("Until More Rocks: " + (15 - (survivingTime % 15)), 20, 80);
+        textAlign(RIGHT);
+        text("Until More Rocks: " + (15 - (survivingTime % 15)), width - 20, 40);
 
         // increasing the survivingTime eac second
         // currTime is in milliseconds
@@ -459,15 +489,11 @@ function draw() {
         // increasing the rates of rocks falling every 15 seconds
         // displaying the text "MORE ROCKS!" to notify it
         if ((survivingTime > 0) && (survivingTime % 15 === 0)) {
-          rate1 += 0.0002;
-          rate2 += 0.0002;
+          moreRock(2);
+        }
 
-          textAlign(CENTER);
-          textFont(font, 32);
-
-          fill(139, 69, 19);
-          text("MORE", width - 150, (height - 200) / 2 + 25);
-          text("ROCKS!", width - 150, (height - 200) / 2 + 75);
+        if ((survivingTime > 0) && (survivingTime % 20 === 0)) {
+          invincible = true;
         }
 
         rocks(gameMode);
@@ -486,6 +512,16 @@ function draw() {
             speedUp = false;
             buffTime = 300;
           }
+        }
+      }
+
+      // the character becomes invincible - cannot be hit by rocks
+      if (invincible) {
+        invincibleTime -= 2;
+
+        if (invincibleTime < 0) {
+          invincible = false;
+          invincibleTime = 500;
         }
       }
 
@@ -641,9 +677,9 @@ function readyTimeDec() {
 }
 
 function timeIncrease(currTime) { // time increases by 1 second
-  if (gameStart && !gameOver && !ready && !start) { // if the game is playing
+  if (gameStart && !gameOver) { // if the game is playing
     // increasing each second
-    if (int((millis() - currTime) / 1000) - 3 != survivingTime) {
+    if (int((millis() - currTime) / 1000) != survivingTime) {
       survivingTime++;
     }
   }
@@ -827,58 +863,85 @@ function rocks(gameMode) {
     }
   }
 
-  // if the character collides with rock1
-  if (character.collide(rocks1)) {
-    character.overlap(rocks1, collect);
+  if (!invincible) {
+    // if the character collides with rock1
+    if (character.collide(rocks1)) {
+      character.overlap(rocks1, collect);
 
-    rock_sound.play();
+      rock_sound.play();
 
-    if (gameMode === 1) {
-      // loses 200 points and displays it
-      score -= 200;
-      scores.push(new TempScore("-200", character.position.x));
+      if (gameMode === 1) {
+        // loses 200 points and displays it
+        score -= 200;
+        scores.push(new TempScore("-200", character.position.x));
 
-      // the character freezes
-      freeze = true;
+        // the character freezes
+        freeze = true;
+      }
+
+      // game modes 2 and 3
+      // game is over when collides with rocks
+      else {
+        gameOver_sound.play();
+
+        gameOver = true;
+        allSprites.removeSprites();
+
+        // to remove the text on the right
+        buffTime = 0;
+        invincibleTime = 0;
+      }
     }
 
-    // game modes 2 and 3
-    // game is over when collides with rocks
-    else {
-      gameOver_sound.play();
+    // if the character collides with rock2
+    if (character.collide(rocks2)) {
+      character.overlap(rocks2, collect);
 
-      gameOver = true;
-      allSprites.removeSprites();
-      buffTime = 0; // to remove the buff text on the right
+      rock_sound.play();
+
+      if (gameMode === 1) {
+        // loses 100 points and displays it
+        score -= 100;
+        scores.push(new TempScore("-100", character.position.x));
+
+        // the character slows down
+        slowDown = true;
+      }
+
+      // game modes 2 and 3
+      // game is over when collides with rocks
+      else {
+        gameOver = true;
+
+        gameOver_sound.play();
+
+        allSprites.removeSprites();
+
+        // to remove the text on the right
+        buffTime = 0;
+        invincibleTime = 0;
+      }
     }
   }
+}
 
-  // if the character collides with rock2
-  if (character.collide(rocks2)) {
-    character.overlap(rocks2, collect);
-
-    rock_sound.play();
-
-    if (gameMode === 1) {
-      // loses 100 points and displays it
-      score -= 100;
-      scores.push(new TempScore("-100", character.position.x));
-
-      // the character slows down
-      slowDown = true;
-    }
-
-    // game modes 2 and 3
-    // game is over when collides with rocks
-    else {
-      gameOver = true;
-
-      gameOver_sound.play();
-
-      allSprites.removeSprites();
-      buffTime = 0; // to remove the buff text on the right
-    }
+function moreRock(gameMode) {
+  if (gameMode == 1) {
+    rate1 += 0.0001;
+    rate2 += 0.0001;
   }
+
+  else {
+    rate1 += 0.0002;
+    rate2 += 0.0002;
+  }
+
+  textAlign(CENTER);
+  textFont(font, 32);
+
+  fill(139, 69, 19);
+  text("MORE", width - 150, (height - 200) / 2 + 25);
+  text("ROCKS!", width - 150, (height - 200) / 2 + 75);
 }
 
 // if the user chose a game mode
@@ -897,8 +960,6 @@ function displayChar(charIndex) {
   chooseChar = false;
   gameStart = true;
   gameOver = false;
-
-  currTime = millis();
 }
 
 // initializes the values
@@ -907,7 +968,9 @@ function initialize() {
 
   remainingTime = 60;
   survivingTime = 0;
+
   buffTime = 300;
+  invincibleTime = 500;
 
   rate1 = 0.005;
   rate2 = 0.007;
